@@ -120,7 +120,7 @@ enum NotificationType {
 // Refresh tokens révoqués (déconnexion sécurisée FC-01-C)
 // ============================================================
 model TokenBlacklist {
-  id            String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   tokenHash     String   @unique @db.VarChar(64) /// SHA-256 du refresh token — jamais le token en clair
   expiresAt     DateTime @db.Timestamptz()
   blacklistedAt DateTime @default(now()) @db.Timestamptz()
@@ -135,7 +135,7 @@ model TokenBlacklist {
 // Compte utilisateur principal (FC-01, FC-02)
 // ============================================================
 model User {
-  id                  String    @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email               String    @unique @db.VarChar(255)
   /// Colonne générée — unicité insensible à la casse (LOWER(email))
   emailLower          String?   @db.VarChar(255)
@@ -187,7 +187,7 @@ model User {
 // Référentiel centralisé des compétences (autocomplétion FC-02)
 // ============================================================
 model SkillCatalog {
-  id          String        @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String        @db.VarChar(100)
   /// Colonne générée — LOWER(name) pour l'unicité et la recherche floue
   //nameLower   String?       @db.VarChar(100) -> pas besoin car dans l fct rechrcher en va transformer tout en miniscule
@@ -217,7 +217,7 @@ model SkillCatalog {
 // Compétences offertes et recherchées d'un utilisateur (FC-02)
 // ============================================================
 model UserSkill {
-  id             String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId         String     @db.Uuid
   skillCatalogId String     @db.Uuid
   type           SkillType // offered or wanted
@@ -246,7 +246,7 @@ model UserSkill {
 // Correspondances calculées entre utilisateurs (FC-03)
 // ============================================================
 model Match {
-  id           String      @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userAId      String      @db.Uuid /// Toujours l'UUID le plus petit des deux — garantit l'unicité canonique
   userBId      String      @db.Uuid
   type         MatchType   // zakariae : perfect / partial
@@ -279,7 +279,7 @@ model Match {
 // Cycle de vie d'une session d'échange (FC-04)
 // ============================================================
 model Session {
-  id                   String          @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                   String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   matchId              String          @db.Uuid
   proposedById         String          @db.Uuid
   recipientId          String          @db.Uuid
@@ -326,7 +326,7 @@ model Session {
 // Évaluations post-session (FC-05)
 // ============================================================
 model Review {
-  id                  String   @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   sessionId           String   @db.Uuid
   reviewerId          String   @db.Uuid
   revieweeId          String   @db.Uuid
@@ -366,7 +366,7 @@ model Review {
 // Historique complet des mouvements de crédits (FC-06)
 // ============================================================
 model CreditTransaction {
-  id           String     @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId       String     @db.Uuid
   /// NULL pour welcome_bonus et profile_bonus
   sessionId    String?    @db.Uuid
@@ -393,7 +393,7 @@ model CreditTransaction {
 // Notifications in-app temps réel (FC-04, FC-05, FC-06)
 // ============================================================
 model Notification {
-  id        String           @id @default(dbgenerated("uuid_generate_v4()")) @db.Uuid
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId    String           @db.Uuid
   type      NotificationType
   /// JSON contextuel ex: {"from_user":"Jean","session_date":"2025-06-15T15:00:00Z","credits":2}
