@@ -1,8 +1,10 @@
 import { Injectable } from '@nestjs/common';
+import { PrismaService } from './prisma/prisma.service';
 
 @Injectable()
 export class AppService {
-  getHello(): string {
-    return 'Feature auth branch';
+  constructor(private prismaService: PrismaService) {}
+  getHello() {
+    return this.prismaService.user.findMany();
   }
 }

@@ -1,0 +1,412 @@
+// ============================================================
+// skilo — Prisma Schema
+// Généré depuis skilo_Schema.sql (PostgreSQL 15+)
+// last modification : 30/03/2026 by zakariae & meriem
+// ============================================================
+
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================
+// ENUMS
+// ============================================================
+
+enum SkillCategory {
+  tech
+  languages
+  arts
+  business
+  sport
+  cooking
+  other
+
+  @@map("skill_category_enum")
+}
+
+enum SkillStatus {
+  approved
+  pending_review
+  rejected
+
+  @@map("skill_status_enum")
+}
+
+enum SkillLevel {
+  beginner
+  intermediate
+  advanced
+
+  @@map("skill_level_enum")
+}
+
+enum SkillType {
+  offered
+  wanted
+
+  @@map("skill_type_enum")
+}
+
+enum MatchType {
+  perfect
+  partial
+
+  @@map("match_type_enum")
+}
+
+enum MatchStatus {
+  active
+  archived
+
+  @@map("match_status_enum")
+}
+
+enum SessionStatus {
+  pending
+  confirmed
+  completed
+  auto_completed
+  cancelled
+  disputed
+
+  @@map("session_status_enum")
+}
+
+enum SessionModality {
+  online
+
+  @@map("session_modality_enum")
+}
+
+enum CreditType {
+  welcome_bonus
+  profile_bonus
+  session_earned
+  session_spent
+  session_reserved
+  session_released
+  session_confirmed
+
+  @@map("credit_type_enum")
+}
+
+enum NotificationType {
+  new_perfect_match
+  new_partial_match
+  match_upgraded
+  session_proposed
+  session_accepted
+  session_declined
+  session_cancelled
+  session_reminder
+  session_completion_ask
+  session_completed
+  review_received
+  credits_earned
+  credits_spent
+  credits_refunded
+  badge_earned
+
+  @@map("notification_type_enum")
+}
+
+// ============================================================
+// 1. TOKEN_BLACKLIST
+// Refresh tokens révoqués (déconnexion sécurisée FC-01-C)
+// ============================================================
+model TokenBlacklist {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  tokenHash     String   @unique @db.VarChar(64) /// SHA-256 du refresh token — jamais le token en clair
+  expiresAt     DateTime @db.Timestamptz()
+  blacklistedAt DateTime @default(now()) @db.Timestamptz()
+
+  @@index([expiresAt], map: "idx_token_blacklist_expires")
+  @@index([tokenHash], map: "idx_token_blacklist_hash")
+  @@map("token_blacklist")
+}
+
+// ============================================================
+// 2. USERS
+// Compte utilisateur principal (FC-01, FC-02)
+// ============================================================
+model User {
+  id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  email               String    @unique @db.VarChar(255)
+  /// Colonne générée — unicité insensible à la casse (LOWER(email))
+  emailLower          String?   @db.VarChar(255)
+  passwordHash        String    @db.VarChar(60) /// Hash bcrypt coût 12 — jamais le mot de passe en clair
+  firstName           String    @db.VarChar(50)
+  lastName            String    @db.VarChar(50)
+  city                String?   @db.VarChar(100)
+  bio                 String?   @db.VarChar(280)
+  avatarUrl           String?   @db.VarChar(500)
+  isOnboarded         Boolean   @default(false)
+  isActive            Boolean   @default(true)
+  creditBalance       Int       @default(2) /// Crédits disponibles. Plafond 20, plancher 0 (FC-06)
+  creditReserved      Int       @default(0) /// Crédits bloqués en attente d'acceptation de session
+  profileScore        Int       @default(0) /// Score 0-100 : photo+20, bio+20, 3 skills offered+30, 3 skills wanted+30
+  avgRating           Decimal?  @db.Decimal(3, 2)
+  avgPedagogy         Decimal?  @db.Decimal(3, 2)
+  avgPunctuality      Decimal?  @db.Decimal(3, 2)
+  avgCommunication    Decimal?  @db.Decimal(3, 2)
+  sessionsCompleted   Int       @default(0)
+  hasBadgeFiable      Boolean   @default(false) /// Recalculé après chaque review reçue (FC-05-B)
+  failedLoginAttempts Int       @default(0)
+  lockedUntil         DateTime? @db.Timestamptz() /// NULL = pas bloqué. Protection brute force (FC-01-B)
+  lastLoginAt         DateTime? @db.Timestamptz()
+  onboardingStep      Int       @default(1) /// 1=compétences offertes, 2=recherchées, 3=infos perso
+  createdAt           DateTime  @default(now()) @db.Timestamptz()
+  updatedAt           DateTime  @updatedAt @db.Timestamptz()
+
+  // Relations
+  skills             UserSkill[]
+  matchesAsA         Match[]             @relation("MatchUserA")
+  matchesAsB         Match[]             @relation("MatchUserB")
+  proposedSessions   Session[]           @relation("SessionProposedBy")
+  receivedSessions   Session[]           @relation("SessionRecipient")
+  cancelledSessions  Session[]           @relation("SessionCancelledBy")
+  reviewsGiven       Review[]            @relation("ReviewReviewer")
+  reviewsReceived    Review[]            @relation("ReviewReviewee")
+  creditTransactions CreditTransaction[]
+  notifications      Notification[]
+  skillsCreated      SkillCatalog[]      @relation("SkillCreatedBy")
+
+  @@index([city], map: "idx_users_city")
+  @@index([isActive], map: "idx_users_active")
+  @@index([isOnboarded], map: "idx_users_onboarded")
+  @@map("users")
+}
+
+// ============================================================
+// 3. SKILL_CATALOG
+// Référentiel centralisé des compétences (autocomplétion FC-02)
+// ============================================================
+model SkillCatalog {
+  id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  name        String        @db.VarChar(100)
+  /// Colonne générée — LOWER(name) pour l'unicité et la recherche floue
+  //nameLower   String?       @db.VarChar(100) -> pas besoin car dans l fct rechrcher en va transformer tout en miniscule
+  category    SkillCategory
+  status      SkillStatus   @default(approved)
+  /// Synonymes reconnus ex: ['JS', 'ECMAScript'] pour JavaScript
+  aliases     String[]
+  /// Incrémenté à chaque ajout dans user_skills, pour trier les suggestions
+  usageCount  Int           @default(0)
+  /// NULL = entrée du seed. UUID = créée par un utilisateur (pending_review)
+  createdById String?       @db.Uuid
+  createdAt   DateTime      @default(now()) @db.Timestamptz()
+
+  // Relations
+  createdBy  User?       @relation("SkillCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  userSkills UserSkill[]
+  reviews    Review[]
+
+  // zakariae : indexage pour amelioer la performance 
+  @@index([category], map: "idx_skill_catalog_category")
+  @@index([status], map: "idx_skill_catalog_status")
+  @@map("skill_catalog")
+}
+
+// ============================================================
+// 4. USER_SKILLS
+// Compétences offertes et recherchées d'un utilisateur (FC-02)
+// ============================================================
+model UserSkill {
+  id             String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId         String     @db.Uuid
+  skillCatalogId String     @db.Uuid
+  type           SkillType // offered or wanted
+  level          SkillLevel
+  /// Description libre max 140 chars
+  description    String?    @db.VarChar(140)
+  createdAt      DateTime   @default(now()) @db.Timestamptz()
+  updatedAt      DateTime   @updatedAt @db.Timestamptz()
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade) 
+  skillCatalog SkillCatalog @relation(fields: [skillCatalogId], references: [id], onDelete: Restrict)
+
+  /// Un user ne peut pas ajouter deux fois la même compétence du même type
+  @@unique([userId, skillCatalogId, type]) // ! zalariae: PK: userID + skillcatalogid+(a pense)
+  @@index([userId], map: "idx_user_skills_user")
+  @@index([skillCatalogId], map: "idx_user_skills_catalog")
+  @@index([type], map: "idx_user_skills_type")
+  @@index([level], map: "idx_user_skills_level")
+  @@index([skillCatalogId, type, level], map: "idx_user_skills_matching")
+  @@map("user_skills")
+}
+
+// ============================================================
+// 5. MATCHES
+// Correspondances calculées entre utilisateurs (FC-03)
+// ============================================================
+model Match {
+  id           String      @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userAId      String      @db.Uuid /// Toujours l'UUID le plus petit des deux — garantit l'unicité canonique
+  userBId      String      @db.Uuid
+  type         MatchType   // zakariae : perfect / partial
+  /// Score de compatibilité 0-100
+  score        Int
+  /// 'Très compatible' | 'Compatible' | 'Partiellement compatible'
+  label        String      @db.VarChar(30)
+  /// [{"offered_by_a": skill_id, "offered_by_b": skill_id}]
+  matchedPairs Json        @default("[]")
+  status       MatchStatus @default(active) // ! active/archived -> i don't understand why we need it
+  createdAt    DateTime    @default(now()) @db.Timestamptz()
+  updatedAt    DateTime    @updatedAt @db.Timestamptz()
+
+  // Relations
+  userA    User      @relation("MatchUserA", fields: [userAId], references: [id], onDelete: Cascade)
+  userB    User      @relation("MatchUserB", fields: [userBId], references: [id], onDelete: Cascade)
+  sessions Session[] //! zakariae : un match peut connecter au plusieur session
+
+  /// Un seul match par paire canonique (user_a_id < user_b_id)
+  @@unique([userAId, userBId])
+  @@index([userAId, status], map: "idx_matches_user_a")
+  @@index([userBId, status], map: "idx_matches_user_b")
+  @@index([type], map: "idx_matches_type")
+  @@index([score(sort: Desc)], map: "idx_matches_score")
+  @@map("matches")
+}
+
+// ============================================================
+// 6. SESSIONS
+// Cycle de vie d'une session d'échange (FC-04)
+// ============================================================
+model Session {
+  id                   String          @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  matchId              String          @db.Uuid
+  proposedById         String          @db.Uuid
+  recipientId          String          @db.Uuid
+  scheduledAt          DateTime        @db.Timestamptz()
+  /// Valeurs autorisées : 30, 60, 90, 120
+  durationMinutes      Int
+  modality             SessionModality @default(online) // !zakariae : ce attribute on peux le commente dans notre MVP
+  meetingLink          String?         @db.VarChar(500)
+  message              String?         @db.VarChar(300) // ! zakariae : message qui a ete envoye par userA
+  /// Compétences échangées confirmées (JSON)
+  skillsExchanged      Json            @default("[]")
+  status               SessionStatus   @default(pending)
+  cancelledById        String?         @db.Uuid
+  cancellationReason   String?         @db.VarChar(200)
+  /// TRUE quand proposed_by_id confirme que la session a eu lieu
+  confirmedByA         Boolean         @default(false)
+  /// TRUE quand recipient_id confirme que la session a eu lieu
+  confirmedByB         Boolean         @default(false)
+  /// scheduled_at + 24h — déclencheur de l'auto_completed
+  confirmationDeadline DateTime?       @db.Timestamptz() // ! zakariae : on doit comprendre l'utilite de ce attribut
+  /// Nombre de crédits débités pour cette session (0 pour match parfait)
+  creditsUsed          Int             @default(0)
+  createdAt            DateTime        @default(now()) @db.Timestamptz()
+  updatedAt            DateTime        @updatedAt @db.Timestamptz()
+
+  // Relations
+  match              Match               @relation(fields: [matchId], references: [id], onDelete: Restrict)
+  proposedBy         User                @relation("SessionProposedBy", fields: [proposedById], references: [id], onDelete: Restrict)
+  recipient          User                @relation("SessionRecipient", fields: [recipientId], references: [id], onDelete: Restrict)
+  cancelledBy        User?               @relation("SessionCancelledBy", fields: [cancelledById], references: [id])
+  reviews            Review[]
+  creditTransactions CreditTransaction[]
+
+  @@index([matchId], map: "idx_sessions_match")
+  @@index([proposedById], map: "idx_sessions_proposed_by")
+  @@index([recipientId], map: "idx_sessions_recipient")
+  @@index([status], map: "idx_sessions_status")
+  @@index([scheduledAt], map: "idx_sessions_scheduled")
+  @@map("sessions")
+}
+
+// ============================================================
+// 7. REVIEWS
+// Évaluations post-session (FC-05)
+// ============================================================
+model Review {
+  id                  String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  sessionId           String   @db.Uuid
+  reviewerId          String   @db.Uuid
+  revieweeId          String   @db.Uuid
+  skillCatalogId      String?  @db.Uuid
+  /// Note globale obligatoire (1-5)
+  rating              Int
+  /// Note pédagogie optionnelle (1-5)
+  ratingPedagogy      Int?
+  /// Note ponctualité optionnelle (1-5)
+  ratingPunctuality   Int?
+  /// Note communication optionnelle (1-5)
+  ratingCommunication Int?
+  comment             String?  @db.VarChar(500)
+  /// FALSE tant que les deux reviews de la session ne sont pas soumises
+  isVisible           Boolean  @default(false) // ! zakariae : les deux personne peut faire un review a l'autre
+  submittedAt         DateTime @default(now()) @db.Timestamptz()
+  /// submitted_at + 7 jours depuis la session
+  expiresAt           DateTime @db.Timestamptz() // ! zakariae : j'ai compris ce attribut a quoi a sert
+
+  // Relations
+  session      Session       @relation(fields: [sessionId], references: [id], onDelete: Restrict)
+  reviewer     User          @relation("ReviewReviewer", fields: [reviewerId], references: [id], onDelete: Restrict)
+  reviewee     User          @relation("ReviewReviewee", fields: [revieweeId], references: [id], onDelete: Restrict)
+  skillCatalog SkillCatalog? @relation(fields: [skillCatalogId], references: [id], onDelete: SetNull)
+
+  /// Un reviewer ne peut évaluer qu'une fois par session
+  @@unique([sessionId, reviewerId]) // ? pk
+  @@index([sessionId], map: "idx_reviews_session")
+  @@index([revieweeId], map: "idx_reviews_reviewee")
+  @@index([reviewerId], map: "idx_reviews_reviewer")
+  @@index([revieweeId, isVisible], map: "idx_reviews_visible")
+  @@map("reviews")
+}
+
+// ============================================================
+// 8. CREDIT_TRANSACTIONS
+// Historique complet des mouvements de crédits (FC-06)
+// ============================================================
+model CreditTransaction {
+  id           String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId       String     @db.Uuid
+  /// NULL pour welcome_bonus et profile_bonus
+  sessionId    String?    @db.Uuid
+  type         CreditType
+  /// Positif = crédit gagné, négatif = crédit dépensé ou réservé
+  amount       Int
+  /// Snapshot du solde après transaction — facilite l'audit
+  balanceAfter Int
+  description  String     @db.VarChar(200)
+  createdAt    DateTime   @default(now()) @db.Timestamptz()
+
+  // Relations
+  user    User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session Session? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@index([userId, createdAt(sort: Desc)], map: "idx_credit_user")
+  @@index([sessionId], map: "idx_credit_session")
+  @@index([type], map: "idx_credit_type")
+  @@map("credit_transactions")
+}
+
+// ============================================================
+// 9. NOTIFICATIONS
+// Notifications in-app temps réel (FC-04, FC-05, FC-06)
+// ============================================================
+model Notification {
+  id        String           @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId    String           @db.Uuid
+  type      NotificationType
+  /// JSON contextuel ex: {"from_user":"Jean","session_date":"2025-06-15T15:00:00Z","credits":2}
+  payload   Json             @default("{}")
+  isRead    Boolean          @default(false)
+  readAt    DateTime?        @db.Timestamptz()
+  createdAt DateTime         @default(now()) @db.Timestamptz()
+
+  // Relations
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, isRead, createdAt(sort: Desc)], map: "idx_notif_user_unread")
+  @@index([userId, createdAt(sort: Desc)], map: "idx_notif_user_all")
+  @@index([type], map: "idx_notif_type")
+  @@map("notifications")
+}
