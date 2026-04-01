@@ -1,0 +1,72 @@
+//register
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "email": "zakariae@skilo.dev",
+  "password": "Password123!",
+  "firstName": "Zakariae",
+  "lastName": "Dev"
+}
+
+###login
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "zakariae@skilo.dev",
+  "password": "Password123!"
+}
+
+###me
+GET http://localhost:3000/auth/me
+Authorization: Bearer woontokenici
+
+
+### Email déjà utilisé → 409
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "email": "zakariae@skilo.dev",
+  "password": "Password123!",
+  "firstName": "Zakariae",
+  "lastName": "Dev"
+}
+
+###  Mauvais mot de passe → 401
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "zakariae@skilo.dev",
+  "password": "WrongPassword!"
+}
+
+### Token manquant → 401
+GET http://localhost:3000/auth/me
+
+### Token invalide → 401
+GET http://localhost:3000/auth/me
+Authorization: Bearer token_invalide_ici
+
+### Body invalide (email malformé) → 400
+POST http://localhost:3000/auth/register
+Content-Type: application/json
+
+{
+  "email": "pas-un-email",
+  "password": "123",
+  "firstName": "",
+  "lastName": "Dev"
+}
+
+
+### Répéter 5x → 401, puis 403 avec lockedUntil
+POST http://localhost:3000/auth/login
+Content-Type: application/json
+
+{
+  "email": "zakariae@skilo.dev",
+  "password": "MauvaisMotDePasse!"
+}
