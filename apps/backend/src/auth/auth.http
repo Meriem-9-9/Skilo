@@ -1,5 +1,5 @@
 //register
-POST http://localhost:3000/auth/register
+POST http://localhost:2006/auth/register
 Content-Type: application/json
 
 {
@@ -10,7 +10,7 @@ Content-Type: application/json
 }
 
 ###login
-POST http://localhost:3000/auth/login
+POST http://localhost:2006/auth/login
 Content-Type: application/json
 
 {
@@ -19,12 +19,12 @@ Content-Type: application/json
 }
 
 ###me
-GET http://localhost:3000/auth/me
+GET http://localhost:2006/auth/me
 Authorization: Bearer woontokenici
 
 
 ### Email déjà utilisé → 409
-POST http://localhost:3000/auth/register
+POST http://localhost:2006/auth/register
 Content-Type: application/json
 
 {
@@ -35,7 +35,7 @@ Content-Type: application/json
 }
 
 ###  Mauvais mot de passe → 401
-POST http://localhost:3000/auth/login
+POST http://localhost:2006/auth/login
 Content-Type: application/json
 
 {
@@ -44,14 +44,14 @@ Content-Type: application/json
 }
 
 ### Token manquant → 401
-GET http://localhost:3000/auth/me
+GET http://localhost:2006/auth/me
 
 ### Token invalide → 401
-GET http://localhost:3000/auth/me
+GET http://localhost:2006/auth/me
 Authorization: Bearer token_invalide_ici
 
 ### Body invalide (email malformé) → 400
-POST http://localhost:3000/auth/register
+POST http://localhost:2006/auth/register
 Content-Type: application/json
 
 {
@@ -63,7 +63,7 @@ Content-Type: application/json
 
 
 ### Répéter 5x → 401, puis 403 avec lockedUntil
-POST http://localhost:3000/auth/login
+POST http://localhost:2006/auth/login
 Content-Type: application/json
 
 {
