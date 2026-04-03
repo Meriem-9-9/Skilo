@@ -1,0 +1,27 @@
+### GET profil connecté
+GET http://localhost:2006/users/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5ZDVjYWMzMi0wMjMxLTQ1MTEtOTVlOC01MmYxZjc0NDdlODIiLCJlbWFpbCI6Imhhc2FubmVAc2tpbG8uY29tIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3NTIzMzEzOSwiZXhwIjoxNzc1MjM0MDM5fQ.AP9i1eTKUjxUmV8oBo56uKFFtCASzF8VWfiwrMsyW5Q
+
+### GET profil public
+GET http://localhost:2006/users/66b1fa08-8b17-48a4-ae31-dcb5ce28018a
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5ZDVjYWMzMi0wMjMxLTQ1MTEtOTVlOC01MmYxZjc0NDdlODIiLCJlbWFpbCI6Imhhc2FubmVAc2tpbG8uY29tIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3NTIzMzEzOSwiZXhwIjoxNzc1MjM0MDM5fQ.AP9i1eTKUjxUmV8oBo56uKFFtCASzF8VWfiwrMsyW5Q
+
+### GET tous les utilisateurs actifs
+GET http://localhost:2006/users
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI5ZDVjYWMzMi0wMjMxLTQ1MTEtOTVlOC01MmYxZjc0NDdlODIiLCJlbWFpbCI6Imhhc2FubmVAc2tpbG8uY29tIiwidHlwZSI6ImFjY2VzcyIsImlhdCI6MTc3NTIzMzEzOSwiZXhwIjoxNzc1MjM0MDM5fQ.AP9i1eTKUjxUmV8oBo56uKFFtCASzF8VWfiwrMsyW5Q
+
+### PATCH mise à jour profil
+PATCH http://localhost:2006/users/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiMWVlMmNlYS0xMWRkLTQ4ZDYtYTEyNC1hYWNhOWYyOWIwNmQiLCJlbWFpbCI6Inpha2FyaWFlQHNraWxvLmRldiIsImlhdCI6MTc3NTE1NDc4NCwiZXhwIjoxNzc1NzU5NTg0fQ.h6i_ytzmiwemySiLt2Fw28lWk6wBG1HnPzwt4RrW0qo
+Content-Type: application/json
+
+{
+  "firstName": "Zakariae",
+  "bio": "Développeur fullstack passionné",
+  "city": "Casablanca",
+  "avatarUrl": "https://cdn.skilo.dev/avatars/zakariae.jpg"
+}
+
+### DELETE soft delete
+DELETE http://localhost:2006/users/me
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiMWVlMmNlYS0xMWRkLTQ4ZDYtYTEyNC1hYWNhOWYyOWIwNmQiLCJlbWFpbCI6Inpha2FyaWFlQHNraWxvLmRldiIsImlhdCI6MTc3NTE1NDc4NCwiZXhwIjoxNzc1NzU5NTg0fQ.h6i_ytzmiwemySiLt2Fw28lWk6wBG1HnPzwt4RrW0qo

@@ -20,7 +20,7 @@ POST {{baseUrl}}/auth/register
 Content-Type: {{contentType}}
 
 {
-  "email": "alice@skilo.com",
+  "email": "hasanne@skilo.com",
   "password": "Password123",
   "firstName": "Alice",
   "lastName": "Dupont"
@@ -79,8 +79,8 @@ POST {{baseUrl}}/auth/login
 Content-Type: {{contentType}}
 
 {
-  "email": "alice@skilo.com",
-  "password": "Password123"
+  "email": "oussama@skilo.dev",
+  "password": "password123"
 }
 
 ### Réponse attendue 200 :

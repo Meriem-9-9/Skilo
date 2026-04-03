@@ -39,9 +39,7 @@ export class AuthService {
     private config: ConfigService,
   ) {}
 
-  // ─────────────────────────────────────────────
   // REGISTER
-  // ─────────────────────────────────────────────
   async register(dto: RegisterDto) {
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
@@ -66,9 +64,7 @@ export class AuthService {
     return { user, ...tokens };
   }
 
-  // ─────────────────────────────────────────────
   // VALIDATE USER (appelé par LocalStrategy)
-  // ─────────────────────────────────────────────
   async validateUser(
     email: string,
     password: string,
