@@ -75,8 +75,8 @@ export class AuthController {
     @Req() req: Request,
     @Res({ passthrough: true }) res: Response,
   ) {
-    const cookies = req.cookies as { refresh_token?: string };
-    const refreshToken = cookies.refresh_token;
+    const cookies = req.cookies as { refresh_token?: string } | undefined;
+    const refreshToken = cookies?.refresh_token;
     if (!refreshToken) {
       return res
         .status(HttpStatus.UNAUTHORIZED)
@@ -95,8 +95,8 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
-    const cookies = req.cookies as { refresh_token?: string };
-    const refreshToken = cookies.refresh_token;
+    const cookies = req.cookies as { refresh_token?: string } | undefined;
+    const refreshToken = cookies?.refresh_token;
     if (refreshToken) {
       await this.authService.logout(refreshToken);
     }
