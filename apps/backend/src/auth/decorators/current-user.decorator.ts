@@ -1,13 +1,23 @@
-// decorators/current-user.decorator.ts
+// auth/decorators/current-user.decorator.ts
 import { createParamDecorator, ExecutionContext } from '@nestjs/common';
-import type { Request } from 'express';
-import type { AuthUser } from '../types/auth-user.type';
 
+/**
+ * @CurrentUser() — injecte l'utilisateur depuis req.user (posé par JwtStrategy ou LocalStrategy)
+ *
+ * Usage :
+ *   @Get('me')
+ *   me(@CurrentUser() user: AuthUser) { ... }
+ *
+ *   Ou un seul champ :
+ *   @Get('id')
+ *   getId(@CurrentUser('id') id: string) { ... }
+ */
 export const CurrentUser = createParamDecorator(
-  (_data: unknown, ctx: ExecutionContext): AuthUser => {
+  (field: string | undefined, ctx: ExecutionContext): unknown => {
     const request = ctx
       .switchToHttp()
-      .getRequest<Request & { user: AuthUser }>();
-    return request.user;
+      .getRequest<{ user?: Record<string, any> }>();
+    const user = request.user;
+    return field ? user?.[field] : user;
   },
 );

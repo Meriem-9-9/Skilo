@@ -1,10 +1,9 @@
-// strategies/jwt.strategy.ts
-import { ExtractJwt, Strategy } from 'passport-jwt';
-import { PassportStrategy } from '@nestjs/passport';
+// auth/strategies/jwt.strategy.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { ExtractJwt, Strategy } from 'passport-jwt';
 import { ConfigService } from '@nestjs/config';
 import { PrismaService } from 'src/prisma/prisma.service';
-
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
@@ -12,33 +11,39 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     private prisma: PrismaService,
   ) {
     const secret = config.get<string>('JWT_SECRET');
-    if (!secret) throw new Error('JWT_SECRET is not defined in environment');
+
+    if (!secret) {
+      throw new Error('JWT_SECRET is not defined');
+    }
 
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: secret, // maintenant string garanti
+      secretOrKey: secret,
+      passReqToCallback: true,
     });
   }
 
-  async validate(payload: { sub: string; email: string }) {
+  async validate(
+    req: any,
+    payload: { sub: string; email: string; type: string },
+  ) {
+    // Vérifie que c'est bien un access token, pas un refresh token
+    if (payload.type !== 'access') {
+      throw new UnauthorizedException('Type de token incorrect');
+    }
+
+    // Vérifie que l'utilisateur est toujours actif
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      select: {
-        id: true,
-        email: true,
-        firstName: true,
-        lastName: true,
-        isActive: true,
-        creditBalance: true,
-        isOnboarded: true,
-      },
+      select: { id: true, email: true, isActive: true },
     });
 
     if (!user || !user.isActive) {
-      throw new UnauthorizedException('Compte inactif ou introuvable');
+      throw new UnauthorizedException('Utilisateur inactif ou introuvable');
     }
 
-    return user;
+    // Retourne l'objet injecté dans req.user (disponible via @CurrentUser())
+    return { id: payload.sub, email: payload.email };
   }
 }

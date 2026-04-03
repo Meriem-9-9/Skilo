@@ -1,18 +1,20 @@
-// strategies/local.strategy.ts
-import { Strategy } from 'passport-local';
-import { PassportStrategy } from '@nestjs/passport';
+// auth/strategies/local.strategy.ts
 import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { PassportStrategy } from '@nestjs/passport';
+import { Strategy } from 'passport-local';
 import { AuthService } from '../auth.service';
 
 @Injectable()
 export class LocalStrategy extends PassportStrategy(Strategy) {
   constructor(private authService: AuthService) {
-    super({ usernameField: 'email' }); // on utilise email au lieu de username
+    super({ usernameField: 'email' }); // utilise "email" au lieu de "username"
   }
 
   async validate(email: string, password: string) {
     const user = await this.authService.validateUser(email, password);
-    if (!user) throw new UnauthorizedException('Identifiants invalides');
+    if (!user) {
+      throw new UnauthorizedException('Email ou mot de passe incorrect');
+    }
     return user;
   }
 }
