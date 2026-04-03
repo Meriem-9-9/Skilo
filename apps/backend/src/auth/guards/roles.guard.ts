@@ -7,7 +7,6 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role, ROLES_KEY } from '../decorators/roles.decorator';
-// import { ROLES_KEY, Role } from '../decorators/roles.decorator';
 
 /**
  * RolesGuard — vérifie que l'utilisateur a le rôle requis.

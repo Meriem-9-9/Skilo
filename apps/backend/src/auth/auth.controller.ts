@@ -31,9 +31,7 @@ const COOKIE_OPTIONS = {
 export class AuthController {
   constructor(private authService: AuthService) {}
 
-  // ─────────────────────────────────────────────
   // POST /auth/register
-  // ─────────────────────────────────────────────
   @Public()
   @Post('register')
   async register(
@@ -48,9 +46,7 @@ export class AuthController {
     };
   }
 
-  // ─────────────────────────────────────────────
   // POST /auth/login  (LocalStrategy valide email+password)
-  // ─────────────────────────────────────────────
   @Public()
   @UseGuards(LocalAuthGuard)
   @Post('login')
@@ -94,9 +90,7 @@ export class AuthController {
     };
   }
 
-  // ─────────────────────────────────────────────
   // POST /auth/logout
-  // ─────────────────────────────────────────────
   @UseGuards(JwtAuthGuard)
   @Post('logout')
   @HttpCode(HttpStatus.OK)
@@ -110,18 +104,14 @@ export class AuthController {
     return { message: 'Déconnecté avec succès' };
   }
 
-  // ─────────────────────────────────────────────
   // GET /auth/me  — profil courant
-  // ─────────────────────────────────────────────
   @UseGuards(JwtAuthGuard)
   @Get('me')
   async me(@CurrentUser() user: AuthUser) {
     return this.authService.me(user.id);
   }
 
-  // ─────────────────────────────────────────────
   // PRIVATE
-  // ─────────────────────────────────────────────
   private setRefreshCookie(res: Response, refreshToken: string) {
     res.cookie('refresh_token', refreshToken, COOKIE_OPTIONS);
   }

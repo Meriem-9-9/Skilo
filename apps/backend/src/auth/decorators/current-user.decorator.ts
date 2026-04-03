@@ -8,7 +8,7 @@ import { createParamDecorator, ExecutionContext } from '@nestjs/common';
  *   @Get('me')
  *   me(@CurrentUser() user: AuthUser) { ... }
  *
- *   // Ou un seul champ :
+ *   Ou un seul champ :
  *   @Get('id')
  *   getId(@CurrentUser('id') id: string) { ... }
  */
