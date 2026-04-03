@@ -79,8 +79,8 @@ POST {{baseUrl}}/auth/login
 Content-Type: {{contentType}}
 
 {
-  "email": "oussama@skilo.dev",
-  "password": "password123"
+  "email": "meriem@skilo.app",
+  "password": "Password123!"
 }
 
 ### Réponse attendue 200 :
@@ -193,7 +193,6 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.fake.token
 # @name refresh
 POST {{baseUrl}}/auth/refresh
 Content-Type: {{contentType}}
-
 ### Réponse attendue 200 :
 ### {
 ###   "user": { ... },
