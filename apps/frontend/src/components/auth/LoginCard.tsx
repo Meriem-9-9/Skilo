@@ -5,19 +5,21 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { AxiosError } from 'axios'
 import Logo from '@/components/ui/Logo'
 import { Input } from '@/components/ui/Input'
 import { PasswordInput } from '@/components/ui/PasswordInput'
 import { Alert } from '@/components/ui/Alert'
 import { Divider } from '@/components/ui/Divider'
 import { GoogleButton } from '@/components/auth/GoogleButton'
-import { useSimulatedAuth } from '@/hooks/useSimulatedAuth'
+import { useAuth } from '@/contexts/AuthContext'
 
 function validateEmail(email: string): string | null {
   if (!email) return 'Veuillez saisir votre adresse email.'
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return 'Adresse email invalide.'
   return null
 }
+
 function validatePassword(password: string): string | null {
   if (!password) return 'Veuillez saisir votre mot de passe.'
   return null
@@ -25,7 +27,7 @@ function validatePassword(password: string): string | null {
 
 export function LoginCard() {
   const router = useRouter()
-  const { loading, simulateLogin } = useSimulatedAuth()
+  const { login, loading } = useAuth()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
@@ -37,25 +39,44 @@ export function LoginCard() {
   const [showSuccess, setShowSuccess] = useState(false)
   const [btnHover, setBtnHover] = useState(false)
 
-  const clearErrors = () => { setServerError(null); setLockedBanner(null) }
+  const clearErrors = () => { 
+    setServerError(null)
+    setLockedBanner(null)
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     clearErrors()
+    
     const emailErr = validateEmail(email)
     const passwordErr = validatePassword(password)
     setEmailError(emailErr)
     setPasswordError(passwordErr)
+    
     if (emailErr || passwordErr) return
 
-    const result = await simulateLogin({ email, password })
-    if (!result.success) {
-      if (result.error === 'ACCOUNT_LOCKED') setLockedBanner(result.message ?? 'Compte verrouillé.')
-      else setServerError(result.message ?? 'Email ou mot de passe incorrect.')
-      return
+    try {
+      await login({ email, password })
+      // La redirection est gérée dans AuthContext.login()
+      setShowSuccess(true)
+      setTimeout(() => router.push('/dashboard'), 2000)
+    } catch (err) {
+      const axiosErr = err as AxiosError<{ message: string; statusCode: number }>
+      const status = axiosErr.response?.status
+      const message = axiosErr.response?.data?.message
+
+      if (status === 403) {
+        // Compte verrouillé (bruteforce FC-01-B)
+        setLockedBanner(message ?? 'Compte temporairement verrouillé.')
+        setServerError(null)
+      } else if (status === 401) {
+        setServerError('Email ou mot de passe incorrect.')
+        setLockedBanner(null)
+      } else {
+        setServerError('Une erreur est survenue. Réessayez plus tard.')
+        setLockedBanner(null)
+      }
     }
-    setShowSuccess(true)
-    setTimeout(() => router.push('/dashboard'), 2000)
   }
 
   if (showSuccess) return (
@@ -202,7 +223,7 @@ export function LoginCard() {
           onMouseEnter={(e) => (e.currentTarget.style.textDecoration = 'underline')}
           onMouseLeave={(e) => (e.currentTarget.style.textDecoration = 'none')}
         >
-          S'inscrire gratuitement →
+          S&apos;inscrire gratuitement →
         </Link>
       </p>
 
