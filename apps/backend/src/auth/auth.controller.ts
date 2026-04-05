@@ -84,6 +84,7 @@ export class AuthController {
     }
 
     const result = await this.authService.refresh(refreshToken);
+    this.setRefreshCookie(res, result.refresh_token); // renouvellement du cookie à chaque refresh
     return {
       user: result.user,
       access_token: result.access_token,
@@ -91,7 +92,7 @@ export class AuthController {
   }
 
   // POST /auth/logout
-  @UseGuards(JwtAuthGuard)
+  @Public()
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {

@@ -10,8 +10,16 @@ async function bootstrap() {
     throw new Error('DATABASE_URL is not defined');
   }
 
+  if (!process.env.FRONTEND_URL) {
+    throw new Error('FRONTEND_URL is not defined');
+  }
+
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is not defined');
+  }
+
   app.enableCors({
-    origin: 'http://localhost:2004', // URL de ton frontend
+    origin: process.env.FRONTEND_URL, // URL de ton frontend
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   });

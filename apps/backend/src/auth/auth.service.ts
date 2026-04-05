@@ -127,12 +127,10 @@ export class AuthService {
     return { user, ...tokens };
   }
 
-  // ─────────────────────────────────────────────
-  // REFRESH — valide le refresh token et émet un nouvel access token
-  // ─────────────────────────────────────────────
+  // REFRESH — rotation complète : blackliste l'ancien, émet les deux nouveaux
   async refresh(refreshToken: string) {
     // 1. Vérifie la signature JWT du refresh token
-    let payload: { sub: string; email: string; type: string };
+    let payload: { sub: string; email: string; type: string; exp: number };
     try {
       payload = this.jwt.verify(refreshToken, {
         secret: this.config.get<string>('JWT_REFRESH_SECRET'),
@@ -152,17 +150,28 @@ export class AuthService {
     });
     if (blacklisted) throw new UnauthorizedException('Token révoqué');
 
-    // 3. Vérifie que l'utilisateur existe toujours
+    // 3. Vérifie que l'utilisateur existe toujours et est actif
     const user = await this.prisma.user.findUnique({
       where: { id: payload.sub },
-      select: USER_SELECT,
+      select: { ...USER_SELECT, isActive: true },
     });
     if (!user) throw new UnauthorizedException('Utilisateur introuvable');
+    if (!user.isActive) throw new UnauthorizedException('Compte désactivé');
 
-    // 4. Émet un nouvel access token (rotation partielle : refresh token inchangé)
-    const accessToken = this.signAccessToken(payload.sub, payload.email);
+    // 4. Rotation : blackliste l'ancien refresh token AVANT d'émettre les nouveaux
+    await this.prisma.tokenBlacklist.create({
+      data: {
+        tokenHash,
+        expiresAt: new Date(payload.exp * 1000),
+      },
+    });
 
-    return { user, access_token: accessToken };
+    // 5. Génère un nouvel access token ET un nouveau refresh token
+    const tokens = await this.generateTokens(payload.sub, payload.email);
+
+    const { isActive: _, ...userWithoutIsActive } = user;
+    console.log(_);
+    return { user: userWithoutIsActive, ...tokens };
   }
 
   // ─────────────────────────────────────────────

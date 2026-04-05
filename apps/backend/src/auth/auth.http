@@ -42,9 +42,9 @@ POST {{baseUrl}}/auth/register
 Content-Type: {{contentType}}
 
 {
-  "email": "alice@skilo.com",
+  "email": "ali@skilo.com",
   "password": "Password123",
-  "firstName": "Alice",
+  "firstName": "ali",
   "lastName": "Dupont"
 }
 
