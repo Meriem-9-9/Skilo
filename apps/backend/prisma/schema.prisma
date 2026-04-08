@@ -165,7 +165,7 @@ model User {
   failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime? @db.Timestamptz() /// NULL = pas bloqué. Protection brute force (FC-01-B)
   lastLoginAt         DateTime? @db.Timestamptz()
-  onboardingStep      Int       @default(1) /// 1=compétences offertes, 2=recherchées, 3=infos perso
+//  onboardingStep      Int       @default(1) /// 1=compétences offertes, 2=recherchées, 3=infos perso
   createdAt           DateTime  @default(now()) @db.Timestamptz()
   updatedAt           DateTime  @updatedAt @db.Timestamptz()
 
