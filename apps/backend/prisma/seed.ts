@@ -229,7 +229,6 @@ async function main() {
     create: {
       id: '11000000-0000-0000-0000-000000000001',
       email: 'zakariae@skilo.app',
-      emailLower: 'zakariae@skilo.app',
       passwordHash: PWD,
       firstName: 'Zakariae',
       lastName: 'Benchekroun',
@@ -255,7 +254,6 @@ async function main() {
     create: {
       id: '11000000-0000-0000-0000-000000000002',
       email: 'meriem@skilo.app',
-      emailLower: 'meriem@skilo.app',
       passwordHash: PWD,
       firstName: 'Meriem',
       lastName: 'Ouali',
@@ -281,7 +279,6 @@ async function main() {
     create: {
       id: '11000000-0000-0000-0000-000000000003',
       email: 'youssef@skilo.app',
-      emailLower: 'youssef@skilo.app',
       passwordHash: PWD,
       firstName: 'Youssef',
       lastName: 'Alami',
@@ -304,7 +301,6 @@ async function main() {
     create: {
       id: '11000000-0000-0000-0000-000000000004',
       email: 'sofia@skilo.app',
-      emailLower: 'sofia@skilo.app',
       passwordHash: PWD,
       firstName: 'Sofia',
       lastName: 'Tazi',
@@ -328,7 +324,6 @@ async function main() {
     create: {
       id: '11000000-0000-0000-0000-000000000005',
       email: 'nouveau@skilo.app',
-      emailLower: 'nouveau@skilo.app',
       passwordHash: PWD,
       firstName: 'Karim',
       lastName: 'Idrissi',

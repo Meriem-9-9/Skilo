@@ -137,8 +137,6 @@ model TokenBlacklist {
 model User {
   id                  String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   email               String    @unique @db.VarChar(255)
-  /// Colonne générée — unicité insensible à la casse (LOWER(email))
-  emailLower          String?   @db.VarChar(255)
   passwordHash        String    @db.VarChar(60) /// Hash bcrypt coût 12 — jamais le mot de passe en clair
   firstName           String    @db.VarChar(50)
   lastName            String    @db.VarChar(50)
@@ -189,8 +187,6 @@ model User {
 model SkillCatalog {
   id          String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   name        String        @db.VarChar(100)
-  /// Colonne générée — LOWER(name) pour l'unicité et la recherche floue
-  //nameLower   String?       @db.VarChar(100) -> pas besoin car dans l fct rechrcher en va transformer tout en miniscule
   category    SkillCategory
   status      SkillStatus   @default(approved)
   /// Synonymes reconnus ex: ['JS', 'ECMAScript'] pour JavaScript
@@ -222,8 +218,6 @@ model UserSkill {
   skillCatalogId String     @db.Uuid
   type           SkillType // offered or wanted
   level          SkillLevel
-  /// Description libre max 140 chars
-  description    String?    @db.VarChar(140)
   createdAt      DateTime   @default(now()) @db.Timestamptz()
   updatedAt      DateTime   @updatedAt @db.Timestamptz()
 
