@@ -1,0 +1,316 @@
+
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: var(--font-mono, monospace); }
+  .root { display: flex; gap: 24px; padding: 16px 0; }
+  .side { flex: 1; min-width: 0; }
+  .side-title {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    margin-bottom: 10px;
+    padding: 6px 10px;
+    border-radius: var(--border-radius-md);
+  }
+  .be-title { background: #E6F1FB; color: #0C447C; }
+  .fe-title { background: #E1F5EE; color: #085041; }
+  @media (prefers-color-scheme: dark) {
+    .be-title { background: #0C447C; color: #B5D4F4; }
+    .fe-title { background: #085041; color: #9FE1CB; }
+  }
+  .tree { font-size: 12px; line-height: 1.7; color: var(--color-text-secondary); }
+  .folder { color: var(--color-text-primary); font-weight: 500; }
+  .file { color: var(--color-text-secondary); }
+  .comment { color: var(--color-text-tertiary); font-style: italic; }
+  .hl-blue  { color: #185FA5; font-weight: 500; }
+  .hl-teal  { color: #0F6E56; font-weight: 500; }
+  .hl-amber { color: #854F0B; font-weight: 500; }
+  .hl-coral { color: #993C1D; font-weight: 500; }
+  .hl-purple{ color: #534AB7; font-weight: 500; }
+  @media (prefers-color-scheme: dark) {
+    .hl-blue  { color: #85B7EB; }
+    .hl-teal  { color: #5DCAA5; }
+    .hl-amber { color: #EF9F27; }
+    .hl-coral { color: #F0997B; }
+    .hl-purple{ color: #AFA9EC; }
+  }
+  pre { white-space: pre; overflow-x: auto; }
+</style>
+
+<div class="root">
+  <div class="side">
+    <div class="side-title be-title">skillswap-backend/ (NestJS)</div>
+    <pre class="tree"><span class="folder">src/</span>
+├── <span class="file">main.ts</span>
+├── <span class="file">app.module.ts</span>
+│
+├── <span class="hl-blue">auth/</span>                       <span class="comment"># FC-01</span>
+│   ├── <span class="file">auth.module.ts</span>
+│   ├── <span class="file">auth.controller.ts</span>
+│   ├── <span class="file">auth.service.ts</span>
+│   ├── strategies/
+│   │   ├── <span class="file">jwt.strategy.ts</span>
+│   │   └── <span class="file">jwt-refresh.strategy.ts</span>
+│   ├── guards/
+│   │   ├── <span class="file">jwt-auth.guard.ts</span>
+│   │   └── <span class="file">onboarding.guard.ts</span>
+│   ├── decorators/
+│   │   └── <span class="file">current-user.decorator.ts</span>
+│   └── dto/
+│       ├── <span class="file">register.dto.ts</span>
+│       ├── <span class="file">login.dto.ts</span>
+│       └── <span class="file">auth-response.dto.ts</span>
+│
+├── <span class="hl-teal">users/</span>                      <span class="comment"># FC-02</span>
+│   ├── <span class="file">users.module.ts</span>
+│   ├── <span class="file">users.controller.ts</span>
+│   ├── <span class="file">users.service.ts</span>
+│   ├── entities/
+│   │   └── <span class="file">user.entity.ts</span>
+│   └── dto/
+│       ├── <span class="file">update-profile.dto.ts</span>
+│       └── <span class="file">onboarding-step.dto.ts</span>
+│
+├── <span class="hl-teal">skills/</span>                     <span class="comment"># FC-02 compétences</span>
+│   ├── <span class="file">skills.module.ts</span>
+│   ├── <span class="file">skills.controller.ts</span>
+│   ├── <span class="file">skills.service.ts</span>
+│   ├── entities/
+│   │   ├── <span class="file">skill.entity.ts</span>
+│   │   └── <span class="file">user-skill.entity.ts</span>
+│   └── dto/
+│       ├── <span class="file">create-skill.dto.ts</span>
+│       └── <span class="file">user-skill.dto.ts</span>
+│
+├── <span class="hl-amber">matching/</span>                   <span class="comment"># FC-03</span>
+│   ├── <span class="file">matching.module.ts</span>
+│   ├── <span class="file">matching.controller.ts</span>
+│   ├── <span class="file">matching.service.ts</span>
+│   ├── <span class="file">matching.scheduler.ts</span>     <span class="comment"># job toutes les heures</span>
+│   ├── entities/
+│   │   └── <span class="file">match.entity.ts</span>
+│   └── dto/
+│       └── <span class="file">match-filter.dto.ts</span>
+│
+├── <span class="hl-coral">sessions/</span>                   <span class="comment"># FC-04</span>
+│   ├── <span class="file">sessions.module.ts</span>
+│   ├── <span class="file">sessions.controller.ts</span>
+│   ├── <span class="file">sessions.service.ts</span>
+│   ├── <span class="file">sessions.scheduler.ts</span>     <span class="comment"># rappels, auto-complete 24h</span>
+│   ├── entities/
+│   │   └── <span class="file">session.entity.ts</span>
+│   └── dto/
+│       ├── <span class="file">create-session.dto.ts</span>
+│       └── <span class="file">update-session-status.dto.ts</span>
+│
+├── <span class="hl-coral">reviews/</span>                    <span class="comment"># FC-05</span>
+│   ├── <span class="file">reviews.module.ts</span>
+│   ├── <span class="file">reviews.controller.ts</span>
+│   ├── <span class="file">reviews.service.ts</span>
+│   ├── entities/
+│   │   └── <span class="file">review.entity.ts</span>
+│   └── dto/
+│       └── <span class="file">create-review.dto.ts</span>
+│
+├── <span class="hl-purple">credits/</span>                    <span class="comment"># FC-06</span>
+│   ├── <span class="file">credits.module.ts</span>
+│   ├── <span class="file">credits.controller.ts</span>
+│   ├── <span class="file">credits.service.ts</span>
+│   ├── entities/
+│   │   ├── <span class="file">credit-balance.entity.ts</span>
+│   │   └── <span class="file">credit-transaction.entity.ts</span>
+│   └── dto/
+│       └── <span class="file">credit-transaction.dto.ts</span>
+│
+├── notifications/               <span class="comment"># transversal</span>
+│   ├── <span class="file">notifications.module.ts</span>
+│   ├── <span class="file">notifications.service.ts</span>
+│   ├── <span class="file">notifications.gateway.ts</span>  <span class="comment"># Socket.io</span>
+│   └── entities/
+│       └── <span class="file">notification.entity.ts</span>
+│
+├── uploads/                     <span class="comment"># photos de profil</span>
+│   ├── <span class="file">uploads.module.ts</span>
+│   └── <span class="file">uploads.controller.ts</span>
+│
+├── common/
+│   ├── filters/
+│   │   └── <span class="file">http-exception.filter.ts</span>
+│   ├── interceptors/
+│   │   └── <span class="file">transform.interceptor.ts</span>
+│   ├── pipes/
+│   │   └── <span class="file">validation.pipe.ts</span>
+│   └── decorators/
+│       └── <span class="file">paginated-response.decorator.ts</span>
+│
+└── config/
+    ├── <span class="file">database.config.ts</span>
+    ├── <span class="file">jwt.config.ts</span>
+    └── <span class="file">upload.config.ts</span>
+
+<span class="folder">test/</span>
+├── <span class="file">app.e2e-spec.ts</span>
+└── <span class="file">jest-e2e.json</span>
+
+<span class="file">.env</span>
+<span class="file">.env.example</span>
+<span class="file">ormconfig.ts</span>
+<span class="file">tsconfig.json</span>
+<span class="file">nest-cli.json</span>
+<span class="file">package.json</span></pre>
+  </div>
+
+  <div class="side">
+    <div class="side-title fe-title">skillswap-frontend/ (Next.js + React)</div>
+    <pre class="tree"><span class="folder">app/</span>
+├── <span class="hl-blue">(auth)/</span>                     <span class="comment"># routes publiques</span>
+│   ├── login/
+│   │   └── <span class="file">page.tsx</span>
+│   ├── register/
+│   │   └── <span class="file">page.tsx</span>
+│   └── <span class="file">layout.tsx</span>
+│
+├── <span class="hl-blue">(onboarding)/</span>               <span class="comment"># FC-01 onboarding</span>
+│   ├── step-1/
+│   │   └── <span class="file">page.tsx</span>           <span class="comment"># compétences offertes</span>
+│   ├── step-2/
+│   │   └── <span class="file">page.tsx</span>           <span class="comment"># compétences recherchées</span>
+│   ├── step-3/
+│   │   └── <span class="file">page.tsx</span>           <span class="comment"># bio, ville, photo</span>
+│   └── <span class="file">layout.tsx</span>             <span class="comment"># barre de progression 1/3</span>
+│
+├── <span class="hl-teal">(dashboard)/</span>                <span class="comment"># routes privées</span>
+│   ├── dashboard/
+│   │   └── <span class="file">page.tsx</span>           <span class="comment"># accueil + solde crédits</span>
+│   ├── matches/
+│   │   └── <span class="file">page.tsx</span>           <span class="comment"># FC-03 liste des matchs</span>
+│   ├── sessions/
+│   │   ├── <span class="file">page.tsx</span>           <span class="comment"># FC-04 liste À venir/Passées</span>
+│   │   └── [id]/
+│   │       └── <span class="file">page.tsx</span>       <span class="comment"># détail session</span>
+│   ├── profile/
+│   │   ├── <span class="file">page.tsx</span>           <span class="comment"># FC-02 mon profil</span>
+│   │   └── edit/
+│   │       └── <span class="file">page.tsx</span>       <span class="comment"># édition profil</span>
+│   ├── users/
+│   │   └── [id]/
+│   │       └── <span class="file">page.tsx</span>       <span class="comment"># FC-02B profil public</span>
+│   ├── credits/
+│   │   └── <span class="file">page.tsx</span>           <span class="comment"># FC-06B tableau de bord</span>
+│   └── <span class="file">layout.tsx</span>             <span class="comment"># sidebar + header</span>
+│
+├── <span class="file">layout.tsx</span>
+└── <span class="file">globals.css</span>
+
+<span class="folder">components/</span>
+├── ui/                          <span class="comment"># shadcn/ui</span>
+│   ├── <span class="file">button.tsx</span>
+│   ├── <span class="file">input.tsx</span>
+│   ├── <span class="file">dialog.tsx</span>
+│   ├── <span class="file">badge.tsx</span>
+│   ├── <span class="file">avatar.tsx</span>
+│   ├── <span class="file">progress.tsx</span>
+│   ├── <span class="file">card.tsx</span>
+│   └── <span class="file">...autres</span>
+│
+├── <span class="hl-blue">auth/</span>                       <span class="comment"># FC-01</span>
+│   ├── <span class="file">LoginForm.tsx</span>
+│   ├── <span class="file">RegisterForm.tsx</span>
+│   └── <span class="file">ProtectedRoute.tsx</span>
+│
+├── <span class="hl-blue">onboarding/</span>                 <span class="comment"># FC-01</span>
+│   ├── <span class="file">OnboardingProgress.tsx</span>   <span class="comment"># indicateur 1/3 → 3/3</span>
+│   ├── <span class="file">SkillsOfferedStep.tsx</span>
+│   ├── <span class="file">SkillsWantedStep.tsx</span>
+│   └── <span class="file">ProfileInfoStep.tsx</span>
+│
+├── <span class="hl-teal">profile/</span>                    <span class="comment"># FC-02</span>
+│   ├── <span class="file">ProfileStrengthBar.tsx</span>   <span class="comment"># indicateur de force</span>
+│   ├── <span class="file">ProfileEditForm.tsx</span>
+│   ├── <span class="file">PublicProfile.tsx</span>
+│   ├── <span class="file">SkillsList.tsx</span>
+│   └── <span class="file">AvatarUpload.tsx</span>
+│
+├── <span class="hl-teal">skills/</span>
+│   ├── <span class="file">SkillAutocomplete.tsx</span>    <span class="comment"># autocomplétion FC-02</span>
+│   ├── <span class="file">SkillBadge.tsx</span>
+│   └── <span class="file">SkillForm.tsx</span>
+│
+├── <span class="hl-amber">matches/</span>                    <span class="comment"># FC-03</span>
+│   ├── <span class="file">MatchList.tsx</span>
+│   ├── <span class="file">MatchCard.tsx</span>
+│   ├── <span class="file">MatchFilters.tsx</span>
+│   └── <span class="file">EmptyMatchState.tsx</span>
+│
+├── <span class="hl-coral">sessions/</span>                   <span class="comment"># FC-04</span>
+│   ├── <span class="file">SessionList.tsx</span>
+│   ├── <span class="file">SessionCard.tsx</span>
+│   ├── <span class="file">ProposeSessionModal.tsx</span>
+│   ├── <span class="file">SessionStatusBadge.tsx</span>  <span class="comment"># couleurs statuts</span>
+│   └── <span class="file">CompletionConfirmModal.tsx</span>
+│
+├── <span class="hl-coral">reviews/</span>                    <span class="comment"># FC-05</span>
+│   ├── <span class="file">ReviewForm.tsx</span>
+│   ├── <span class="file">ReviewList.tsx</span>
+│   ├── <span class="file">StarRating.tsx</span>
+│   └── <span class="file">BadgeReliable.tsx</span>        <span class="comment"># badge "Fiable"</span>
+│
+├── <span class="hl-purple">credits/</span>                    <span class="comment"># FC-06</span>
+│   ├── <span class="file">CreditBalance.tsx</span>
+│   ├── <span class="file">CreditHistory.tsx</span>
+│   └── <span class="file">CreditProgressBar.tsx</span>   <span class="comment"># X/20 crédits</span>
+│
+├── layout/
+│   ├── <span class="file">Sidebar.tsx</span>
+│   ├── <span class="file">Header.tsx</span>
+│   ├── <span class="file">NotificationBell.tsx</span>
+│   └── <span class="file">UserMenu.tsx</span>
+│
+└── shared/
+    ├── <span class="file">LoadingSpinner.tsx</span>
+    ├── <span class="file">ErrorMessage.tsx</span>
+    └── <span class="file">EmptyState.tsx</span>
+
+<span class="folder">lib/</span>
+├── api/
+│   ├── <span class="file">axios.ts</span>               <span class="comment"># intercepteur refresh token</span>
+│   ├── <span class="file">auth.ts</span>
+│   ├── <span class="file">users.ts</span>
+│   ├── <span class="file">skills.ts</span>
+│   ├── <span class="file">matches.ts</span>
+│   ├── <span class="file">sessions.ts</span>
+│   ├── <span class="file">reviews.ts</span>
+│   └── <span class="file">credits.ts</span>
+│
+├── <span class="file">socket.ts</span>                  <span class="comment"># config Socket.io client</span>
+├── <span class="file">utils.ts</span>
+└── <span class="file">validations.ts</span>            <span class="comment"># schémas Zod</span>
+
+<span class="folder">hooks/</span>
+├── <span class="file">useAuth.ts</span>
+├── <span class="file">useMatches.ts</span>
+├── <span class="file">useSessions.ts</span>
+├── <span class="file">useCredits.ts</span>
+├── <span class="file">useSocket.ts</span>
+└── <span class="file">useNotifications.ts</span>
+
+<span class="folder">contexts/</span>
+├── <span class="file">AuthContext.tsx</span>
+└── <span class="file">SocketContext.tsx</span>
+
+<span class="folder">types/</span>
+├── <span class="file">user.ts</span>
+├── <span class="file">skill.ts</span>
+├── <span class="file">match.ts</span>
+├── <span class="file">session.ts</span>
+├── <span class="file">review.ts</span>
+└── <span class="file">credit.ts</span>
+
+<span class="file">.env.local</span>
+<span class="file">next.config.ts</span>
+<span class="file">tailwind.config.ts</span>
+<span class="file">tsconfig.json</span>
+<span class="file">package.json</span></pre>
+  </div>
+</div>
