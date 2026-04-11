@@ -1,0 +1,31 @@
+
+@baseUrl = http://localhost:2006
+@token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhNzYwNGE0OS01MWYzLTRiOTMtYTY0NC00M2Q1N2Q3N2I1Y2EiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwiZmlyc3ROYW1lIjoiSm9obiIsImxhc3ROYW1lIjoiRG9lIiwiaWF0IjoxNzc1NTU4MTA2LCJleHAiOjE3NzU1NjE3MDZ9.zr2ppXXPY6JA8ewoKlxyWoRCwS_OBcEW4lsQUoRg6u0"
+
+### GET profil connecté
+GET {{baseUrl}}/users/me
+Authorization: Bearer {{token}}
+
+### GET profil public
+GET {{baseUrl}}/users/66b1fa08-8b17-48a4-ae31-dcb5ce28018a
+Authorization: Bearer {{token}}
+
+### GET tous les utilisateurs actifs
+GET {{baseUrl}}/users
+Authorization: Bearer {{token}}
+
+### PATCH mise à jour profil
+PATCH {{baseUrl}}/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "firstName": "Zakariae",
+  "bio": "Développeur fullstack passionné",
+  "city": "Casablanca",
+  "avatarUrl": "https://cdn.skilo.dev/avatars/zakariae.jpg"
+}
+
+### DELETE soft delete
+DELETE {{baseUrl}}/users/me
+Authorization: Bearer {{token}}

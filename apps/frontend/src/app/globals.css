@@ -1,0 +1,164 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ── Variables CSS globales SkillSwap ── */
+:root {
+  --violet: #6D28D9;
+  --violet2: #7C3AED;
+  --citron: #D4F000;
+  --dark: #1C1033;
+  --bg: #F5F3FF;
+  --surface: #FAFAFA;
+  --text-muted: #8B7EA8;
+  --error: #DC2626;
+  --success: #16A34A;
+}
+
+/* ── Reset & base ── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: var(--font-body, 'DM Sans', sans-serif);
+  background: var(--bg);
+  color: var(--dark);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ── Scrollbar personnalisée ── */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(109, 40, 217, 0.2);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(109, 40, 217, 0.4);
+}
+
+/* ── Formes géométriques de fond (partagées) ── */
+.bg-geo-circle-1 {
+  position: fixed;
+  width: 480px;
+  height: 480px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(109, 40, 217, 0.1) 0%, transparent 65%);
+  top: -100px;
+  right: -80px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-geo-circle-2 {
+  position: fixed;
+  width: 350px;
+  height: 350px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(109, 40, 217, 0.07) 0%, transparent 65%);
+  bottom: -60px;
+  left: -60px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-geo-rect {
+  position: fixed;
+  width: 160px;
+  height: 160px;
+  border-radius: 24px;
+  border: 2px solid rgba(109, 40, 217, 0.08);
+  transform: rotate(20deg);
+  top: 15%;
+  left: 6%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-geo-circle-3 {
+  position: fixed;
+  width: 90px;
+  height: 90px;
+  border-radius: 50%;
+  border: 2px solid rgba(212, 240, 0, 0.15);
+  top: 60%;
+  right: 8%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-geo-square {
+  position: fixed;
+  width: 50px;
+  height: 50px;
+  border: 2px solid rgba(109, 40, 217, 0.1);
+  transform: rotate(45deg);
+  top: 30%;
+  right: 12%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bg-dot-grid {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background-image: radial-gradient(rgba(109, 40, 217, 0.12) 1px, transparent 1px);
+  background-size: 32px 32px;
+  pointer-events: none;
+  -webkit-mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, rgba(0, 0, 0, 0.3) 0%, transparent 100%);
+  mask-image: radial-gradient(ellipse 80% 80% at 50% 50%, rgba(0, 0, 0, 0.3) 0%, transparent 100%);
+}
+
+/* ── Utilitaires Tailwind customs ── */
+@layer utilities {
+  .font-display {
+    font-family: var(--font-display, 'Syne', sans-serif);
+  }
+
+  .text-violet {
+    color: var(--violet);
+  }
+
+  .text-citron {
+    color: var(--citron);
+  }
+
+  .text-muted {
+    color: var(--text-muted);
+  }
+
+  .bg-violet-custom {
+    background-color: var(--violet);
+  }
+
+  .bg-citron-custom {
+    background-color: var(--citron);
+  }
+
+  .bg-dark-custom {
+    background-color: var(--dark);
+  }
+}
+
+@keyframes float {
+  0% { transform: translateY(0px); }
+  50% { transform: translateY(-12px); }
+  100% { transform: translateY(0px); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}

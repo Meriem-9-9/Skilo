@@ -25,6 +25,45 @@
 
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
+## 🔐 Authentication System
+
+This backend implements a secure JWT-based authentication system with:
+
+- ✅ **Register & Login** - User registration and authentication
+- ✅ **Refresh Token** - Automatic token renewal with rotation
+- ✅ **Logout** - Secure token revocation with blacklist
+- ✅ **HttpOnly Cookies** - XSS protection for refresh tokens
+- ✅ **Token Blacklist** - Revoked token tracking
+- ✅ **CRON Cleanup** - Automatic cleanup of expired tokens
+
+### Quick Start
+
+1. **Configure environment variables** (`.env`)
+   ```env
+   JWT_SECRET="your_access_token_secret"
+   JWT_REFRESH_SECRET="your_refresh_token_secret"  # Must be different!
+   DATABASE_URL="postgresql://..."
+   ```
+
+2. **Start the server**
+   ```bash
+   pnpm run dev
+   ```
+
+3. **Test endpoints** (see `src/auth/auth.http`)
+   - `POST /auth/register` - Create account
+   - `POST /auth/login` - Sign in
+   - `POST /auth/refresh` - Renew access token
+   - `POST /auth/logout` - Sign out
+   - `GET /auth/me` - Get current user
+
+### Documentation
+
+- 📄 **[Quick Start Guide](QUICK-START.md)** - Get started in 2 minutes
+- 📊 **[Auth Analysis](auth-completeness-analysis.md)** - Complete system analysis
+- 🔧 **[Implementation Details](REFRESH-LOGOUT-IMPLEMENTATION.md)** - Technical documentation
+- ✅ **[Implementation Summary](IMPLEMENTATION-SUMMARY.md)** - What's been done
+
 ## Project setup
 
 ```bash

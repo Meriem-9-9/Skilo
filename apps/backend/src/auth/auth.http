@@ -1,0 +1,94 @@
+### Variables
+@baseUrl = http://localhost:2006
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJiZjBkM2YzZi01ZjBiLTQ5NmQtODQ1YS0wMmNiOThmMWQxMWQiLCJlbWFpbCI6Im1lcmllbXRpQGV4YW1wbGUuY29tIiwiZmlyc3ROYW1lIjoiSm9obiIsImxhc3ROYW1lIjoiRG9lIiwiaWF0IjoxNzc1NjU3ODc1LCJleHAiOjE3NzU2NTg3NzV9.HUeViWGO19B24AGwPwY0o61zW8eGLvfbAd-spfvfb-Y
+
+### ─────────────────────────────────────────────────────────────
+### Register a new user
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "meriemti@example.com",
+  "password": "Password123",
+  "firstName": "John",
+  "lastName": "Doe"
+}
+
+### ─────────────────────────────────────────────────────────────
+### Login with existing user
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "Password123"
+}
+
+### ─────────────────────────────────────────────────────────────
+### Refresh access token (uses refresh_token cookie automatically)
+POST {{baseUrl}}/auth/refresh
+
+### ─────────────────────────────────────────────────────────────
+### Logout (revokes refresh_token)
+POST {{baseUrl}}/auth/logout
+
+### ─────────────────────────────────────────────────────────────
+### Get current user profile (protected route)
+### Copy the access_token from login/register response and paste it below
+GET {{baseUrl}}/auth/me
+Authorization: Bearer {{token}}
+
+### ─────────────────────────────────────────────────────────────
+### Register - Test validation errors (email invalide)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "invalid-email",
+  "password": "Password123",
+  "firstName": "Jane",
+  "lastName": "Smith"
+}
+
+### ─────────────────────────────────────────────────────────────
+### Register - Test validation errors (mot de passe faible)
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "jane.smith@example.com",
+  "password": "weak",
+  "firstName": "Jane",
+  "lastName": "Smith"
+}
+
+### ─────────────────────────────────────────────────────────────
+### Register - Test email already exists
+POST {{baseUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "Password123",
+  "firstName": "John",
+  "lastName": "Duplicate"
+}
+
+### ─────────────────────────────────────────────────────────────
+### Login - Test invalid credentials
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "john.doe@example.com",
+  "password": "WrongPassword123"
+}
+
+### ─────────────────────────────────────────────────────────────
+### Get profile without token (should fail)
+GET {{baseUrl}}/auth/me
+
+### ─────────────────────────────────────────────────────────────
+### Get profile with invalid token (should fail)
+GET {{baseUrl}}/auth/me
+Authorization: Bearer invalid_token_here
