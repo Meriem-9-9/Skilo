@@ -1,0 +1,215 @@
+# ══════════════════════════════════════════════════════════════════
+#  skilo API — Skills  (FC-02 / SkillsModule)
+#  Base: http://localhost:2006
+#  @token      → regular user access_token
+#  @adminToken → admin user access_token
+#  @skillId    → paste UUID from any response
+# ══════════════════════════════════════════════════════════════════
+
+@baseUrl    = http://localhost:2006
+@token      = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMTAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDIiLCJlbWFpbCI6Im1lcmllbUBza2lsby5hcHAiLCJmaXJzdE5hbWUiOiJNZXJpZW0iLCJsYXN0TmFtZSI6Ik91YWxpIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzc2MDE1MzMwLCJleHAiOjE3NzYwMTYyMzB9.StwBK0jAA9UauOSmxVkbulNl35Sndw-2zhb8sEM_iaU
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMTAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDIiLCJlbWFpbCI6Im1lcmllbUBza2lsby5hcHAiLCJmaXJzdE5hbWUiOiJNZXJpZW0iLCJsYXN0TmFtZSI6Ik91YWxpIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzc2MDE1MzMwLCJleHAiOjE3NzYwMTYyMzB9.StwBK0jAA9UauOSmxVkbulNl35Sndw-2zhb8sEM_iaU
+@skillId    = 0031d8aa-d265-47f8-a7f1-f026456ca582
+
+
+# ══════════════════════════════════════════════════════════════════
+#  CLIENT — any authenticated user
+# ══════════════════════════════════════════════════════════════════
+
+# ─── Search / Autocomplete ────────────────────────────────────────
+
+### ✅ Search — with query term
+GET {{baseUrl}}/skills/search?q=r
+Authorization: Bearer {{token}}
+
+### ✅ Search — partial match (returns python, pytorch, etc.)
+GET {{baseUrl}}/skills/search?q=py
+Authorization: Bearer {{token}}
+
+### ✅ Search — no query → top 10 most used skills
+GET {{baseUrl}}/skills/search
+Authorization: Bearer {{token}}
+
+### ✅ Search — match on alias (e.g. "JS" maps to JavaScript)
+GET {{baseUrl}}/skills/search?q=JS
+Authorization: Bearer {{token}}
+
+### ❌ Search — no token (401)
+GET {{baseUrl}}/skills/search?q=java
+
+
+# ─── Propose a new skill ─────────────────────────────────────────
+
+### ✅ Create — new skill, will be pending_review
+POST {{baseUrl}}/skills
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Darija marocaine",
+  "category": "languages"
+  
+}
+
+### ✅ Create — duplicate name → returns existing skill (no error)
+POST {{baseUrl}}/skills
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Darija marocaine",
+  "category": "languages"
+}
+
+### ❌ Create — invalid category (400)
+POST {{baseUrl}}/skills
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Some Skill",
+  "category": "music"
+}
+
+### ❌ Create — name too short (400)
+POST {{baseUrl}}/skills
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "A",
+  "category": "tech"
+}
+
+### ❌ Create — no token (401)
+POST {{baseUrl}}/skills
+Content-Type: application/json
+
+{
+  "name": "Test Skill",
+  "category": "tech"
+}
+
+
+# ══════════════════════════════════════════════════════════════════
+#  ADMIN — role: admin required (use @adminToken)
+# ══════════════════════════════════════════════════════════════════
+
+# ─── List all skills ──────────────────────────────────────────────
+
+### ✅ Admin — list all skills (all statuses)
+GET {{baseUrl}}/skills
+Authorization: Bearer {{adminToken}}
+
+### ✅ Admin — filter by status: pending_review
+GET {{baseUrl}}/skills?status=pending_review
+Authorization: Bearer {{adminToken}}
+
+### ✅ Admin — filter by status: approved
+GET {{baseUrl}}/skills?status=approved
+Authorization: Bearer {{adminToken}}
+
+### ✅ Admin — filter by status: rejected
+GET {{baseUrl}}/skills?status=rejected
+Authorization: Bearer {{adminToken}}
+
+### ✅ Admin — with pagination
+GET {{baseUrl}}/skills?status=pending_review&page=1&limit=10
+Authorization: Bearer {{adminToken}}
+
+### ❌ Admin — regular user token (403)
+GET {{baseUrl}}/skills
+Authorization: Bearer {{token}}
+
+
+# ─── Pending review shortcut ──────────────────────────────────────
+
+### ✅ Admin — pending skills (review screen)
+GET {{baseUrl}}/skills/pending
+Authorization: Bearer {{adminToken}}
+
+### ❌ Admin — regular user token (403)
+GET {{baseUrl}}/skills/pending
+Authorization: Bearer {{token}}
+
+
+# ─── Approve ──────────────────────────────────────────────────────
+
+### ✅ Admin — approve a skill
+PATCH {{baseUrl}}/skills/{{skillId}}/approve
+Authorization: Bearer {{adminToken}}
+
+### ❌ Admin — approve already approved skill (400)
+PATCH {{baseUrl}}/skills/{{skillId}}/approve
+Authorization: Bearer {{adminToken}}
+
+### ❌ Admin — regular user cannot approve (403)
+PATCH {{baseUrl}}/skills/{{skillId}}/approve
+Authorization: Bearer {{token}}
+
+### ❌ Admin — skill not found (404)
+PATCH {{baseUrl}}/skills/00000000-0000-0000-0000-000000000000/approve
+Authorization: Bearer {{adminToken}}
+
+
+# ─── Reject ───────────────────────────────────────────────────────
+
+### ✅ Admin — reject with a reason
+PATCH {{baseUrl}}/skills/{{skillId}}/reject
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "reason": "Doublon avec une compétence existante."
+}
+
+### ✅ Admin — reject without a reason (reason is optional)
+PATCH {{baseUrl}}/skills/{{skillId}}/reject
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{}
+
+### ❌ Admin — reject already rejected skill (400)
+PATCH {{baseUrl}}/skills/{{skillId}}/reject
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{}
+
+### ❌ Admin — regular user cannot reject (403)
+PATCH {{baseUrl}}/skills/{{skillId}}/reject
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{}
+
+
+# ─── Aliases ──────────────────────────────────────────────────────
+
+### ✅ Admin — set aliases on a skill (improves autocomplete)
+PATCH {{baseUrl}}/skills/{{skillId}}/aliases
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "aliases": ["JS", "ECMAScript", "Vanilla JS"]
+}
+
+### ✅ Admin — clear aliases
+PATCH {{baseUrl}}/skills/{{skillId}}/aliases
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "aliases": []
+}
+
+### ❌ Admin — skill not found (404)
+PATCH {{baseUrl}}/skills/00000000-0000-0000-0000-000000000000/aliases
+Content-Type: application/json
+Authorization: Bearer {{adminToken}}
+
+{
+  "aliases": ["test"]
+}

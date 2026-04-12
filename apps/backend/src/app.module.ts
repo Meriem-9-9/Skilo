@@ -7,6 +7,7 @@ import { ScheduleModule } from '@nestjs/schedule';
 import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
+import { SkillsModule } from './skills/skills.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { OnboardingModule } from './onboarding/onboarding.module';
     UsersModule,
     ScheduleModule.forRoot(),
     OnboardingModule,
+    SkillsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

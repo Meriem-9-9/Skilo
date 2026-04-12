@@ -1,12 +1,14 @@
 import { Module } from '@nestjs/common';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
-import { PrismaModule } from 'src/prisma/prisma.module';
-import { AuthModule } from 'src/auth/auth.module';
+import { PrismaService } from '../prisma/prisma.service';
+import { AuthModule } from '../auth/auth.module';
+import { SkillsService } from '../skills/skills.service';
 
 @Module({
-  imports: [PrismaModule, AuthModule],
+  imports: [AuthModule], // provides JwtGuard + JwtModule
   controllers: [UsersController],
-  providers: [UsersService],
+  providers: [UsersService, SkillsService, PrismaService],
+  exports: [UsersService], // exported so MatchingService can call calculateStrength later
 })
 export class UsersModule {}

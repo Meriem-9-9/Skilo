@@ -27,7 +27,11 @@ export class RolesGuard implements CanActivate {
 
     // BUG FIX: was "if (requiredRoles.length > 0) throw" — always blocked everyone
     // Correct: block only if the user's role is NOT in the required list
-    if (!requiredRoles.includes(user.role)) {
+    if (
+      !requiredRoles
+        .map((role) => role.toLowerCase())
+        .includes(user.role.toLowerCase())
+    ) {
       throw new ForbiddenException('You do not have permission');
     }
 
