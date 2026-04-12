@@ -8,6 +8,7 @@ import { PrismaModule } from './prisma/prisma.module';
 import { UsersModule } from './users/users.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
 import { SkillsModule } from './skills/skills.module';
+import { MatchingModule } from './matching/matching.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { SkillsModule } from './skills/skills.module';
     ScheduleModule.forRoot(),
     OnboardingModule,
     SkillsModule,
+    MatchingModule,
   ],
   controllers: [AppController],
   providers: [AppService],
