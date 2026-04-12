@@ -1,31 +1,220 @@
+# ══════════════════════════════════════════════════════════════════
+#  skilo API — Users & Skills  (FC-02)
+#  Base: http://localhost:2006
+#  ⚠ Set @token after login. Set @userSkillId / @targetId from responses.
+# ══════════════════════════════════════════════════════════════════
 
-@baseUrl = http://localhost:2006
-@token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJhNzYwNGE0OS01MWYzLTRiOTMtYTY0NC00M2Q1N2Q3N2I1Y2EiLCJlbWFpbCI6ImpvaG4uZG9lQGV4YW1wbGUuY29tIiwiZmlyc3ROYW1lIjoiSm9obiIsImxhc3ROYW1lIjoiRG9lIiwiaWF0IjoxNzc1NTU4MTA2LCJleHAiOjE3NzU1NjE3MDZ9.zr2ppXXPY6JA8ewoKlxyWoRCwS_OBcEW4lsQUoRg6u0"
+@baseUrl      = http://localhost:2006
+@token        = PASTE_ACCESS_TOKEN_HERE
+@userSkillId  = PASTE_USER_SKILL_UUID_HERE
+@targetUserId = PASTE_OTHER_USER_UUID_HERE
 
-### GET profil connecté
+
+# ══════════════════════════════════════════════════════════════════
+#  1. OWN PROFILE
+# ══════════════════════════════════════════════════════════════════
+
+### ✅ GET /users/me — full own profile (email + credits visible)
 GET {{baseUrl}}/users/me
 Authorization: Bearer {{token}}
 
-### GET profil public
-GET {{baseUrl}}/users/66b1fa08-8b17-48a4-ae31-dcb5ce28018a
-Authorization: Bearer {{token}}
-
-### GET tous les utilisateurs actifs
-GET {{baseUrl}}/users
-Authorization: Bearer {{token}}
-
-### PATCH mise à jour profil
+### ✅ PATCH /users/me — update bio and city
 PATCH {{baseUrl}}/users/me
-Authorization: Bearer {{token}}
 Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "city": "Casablanca",
+  "bio": "Développeur fullstack passionné par les échanges de compétences."
+}
+
+### ✅ PATCH /users/me — update first/last name
+PATCH {{baseUrl}}/users/me
+Content-Type: application/json
+Authorization: Bearer {{token}}
 
 {
   "firstName": "Zakariae",
-  "bio": "Développeur fullstack passionné",
-  "city": "Casablanca",
-  "avatarUrl": "https://cdn.skilo.dev/avatars/zakariae.jpg"
+  "lastName": "Skilo"
 }
 
-### DELETE soft delete
+### ✅ PATCH /users/me — set avatar URL (after POST /upload)
+PATCH {{baseUrl}}/users/me
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "avatarUrl": "https://res.cloudinary.com/skilo/image/upload/v1/avatars/sample.jpg"
+}
+
+### ❌ PATCH /users/me — bio too long (400)
+PATCH {{baseUrl}}/users/me
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "bio": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+}
+
+### ✅ DELETE /users/me — soft delete (sets isActive = false)
 DELETE {{baseUrl}}/users/me
 Authorization: Bearer {{token}}
+
+
+# ══════════════════════════════════════════════════════════════════
+#  2. SKILLS — ADD / UPDATE / DELETE
+# ══════════════════════════════════════════════════════════════════
+
+### ✅ POST /users/me/skills — add an offered skill
+###    Get a real skillId from GET /skills/search?q=java first
+POST {{baseUrl}}/users/me/skills
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "skillId": "PASTE_SKILL_UUID_HERE",
+  "type": "offered",
+  "level": "intermediate"
+}
+
+### ✅ POST /users/me/skills — add a wanted skill
+POST {{baseUrl}}/users/me/skills
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "skillId": "PASTE_SKILL_UUID_HERE",
+  "type": "wanted",
+  "level": "beginner"
+}
+
+### ❌ POST /users/me/skills — invalid level value (400)
+POST {{baseUrl}}/users/me/skills
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "skillId": "PASTE_SKILL_UUID_HERE",
+  "type": "offered",
+  "level": "expert"
+}
+
+### ❌ POST /users/me/skills — invalid type value (400)
+POST {{baseUrl}}/users/me/skills
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "skillId": "PASTE_SKILL_UUID_HERE",
+  "type": "teacher",
+  "level": "beginner"
+}
+
+### ❌ POST /users/me/skills — skill not in catalog (404)
+POST {{baseUrl}}/users/me/skills
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "skillId": "00000000-0000-0000-0000-000000000000",
+  "type": "offered",
+  "level": "beginner"
+}
+
+### ✅ PATCH /users/me/skills/:id — update level only
+PATCH {{baseUrl}}/users/me/skills/{{userSkillId}}
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "level": "advanced"
+}
+
+### ❌ PATCH /users/me/skills/:id — invalid UUID (400)
+PATCH {{baseUrl}}/users/me/skills/not-a-uuid
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "level": "advanced"
+}
+
+### ✅ DELETE /users/me/skills/:id — remove a skill
+DELETE {{baseUrl}}/users/me/skills/{{userSkillId}}
+Authorization: Bearer {{token}}
+
+### ❌ DELETE /users/me/skills/:id — skill linked to a session (400)
+DELETE {{baseUrl}}/users/me/skills/{{userSkillId}}
+Authorization: Bearer {{token}}
+
+
+# ══════════════════════════════════════════════════════════════════
+#  3. PUBLIC PROFILES
+# ══════════════════════════════════════════════════════════════════
+
+### ✅ GET /users — paginated list of all active onboarded users
+GET {{baseUrl}}/users
+Authorization: Bearer {{token}}
+
+### ✅ GET /users?page=2&limit=10 — with pagination
+GET {{baseUrl}}/users?page=2&limit=10
+Authorization: Bearer {{token}}
+
+### ✅ GET /users/:id — public profile of another user
+GET {{baseUrl}}/users/{{targetUserId}}
+Authorization: Bearer {{token}}
+
+### ❌ GET /users/:id — user not found or not onboarded (404)
+GET {{baseUrl}}/users/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}
+
+### ❌ GET /users/:id — invalid UUID (400)
+GET {{baseUrl}}/users/not-a-uuid
+Authorization: Bearer {{token}}
+
+
+# ══════════════════════════════════════════════════════════════════
+#  4. SKILLS CATALOG
+# ══════════════════════════════════════════════════════════════════
+
+### ✅ GET /skills/search?q= — autocomplete (returns top 10 by usage)
+GET {{baseUrl}}/skills/search?q=java
+Authorization: Bearer {{token}}
+
+### ✅ GET /skills/search?q= — partial match
+GET {{baseUrl}}/skills/search?q=py
+Authorization: Bearer {{token}}
+
+### ✅ GET /skills/search?q= — empty query (returns [])
+GET {{baseUrl}}/skills/search?q=
+Authorization: Bearer {{token}}
+
+### ✅ POST /skills — propose a new skill (status: pending_review)
+POST {{baseUrl}}/skills
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Darija marocaine",
+  "category": "languages"
+}
+
+### ❌ POST /skills — invalid category (400)
+POST {{baseUrl}}/skills
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Some Skill",
+  "category": "music"
+}
+
+### ✅ POST /skills — duplicate name (returns existing instead of creating)
+POST {{baseUrl}}/skills
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "name": "Darija marocaine",
+  "category": "languages"
+}
