@@ -124,7 +124,7 @@ export class OnboardingService {
           type: 'welcome_bonus',
           amount: 2,
           balanceAfter: user.creditBalance, // still 2 from register
-          description: 'Crédit de bienvenue à l\'inscription',
+          description: "Crédit de bienvenue à l'inscription",
         },
       });
     });
