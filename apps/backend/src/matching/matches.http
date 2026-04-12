@@ -1,0 +1,103 @@
+# ══════════════════════════════════════════════════════════════════
+#  skilo API — Matching  (FC-03)
+#  Base: http://localhost:2006
+#  ⚠ You need 2+ onboarded users with overlapping skills to see matches
+#  @token      → regular user access_token
+#  @adminToken → admin access_token
+#  @matchId    → paste UUID from GET /matches response
+# ══════════════════════════════════════════════════════════════════
+
+@baseUrl    = http://localhost:2006
+@token      = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMTAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDIiLCJlbWFpbCI6Im1lcmllbUBza2lsby5hcHAiLCJmaXJzdE5hbWUiOiJNZXJpZW0iLCJsYXN0TmFtZSI6Ik91YWxpIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzc2MDE3NDk5LCJleHAiOjE3NzYwMTgzOTl9.cNvWMQpyxrgsJJTNvt-i9uqPi-qb1G4LOV02HK6hlwg
+@adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMTAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDIiLCJlbWFpbCI6Im1lcmllbUBza2lsby5hcHAiLCJmaXJzdE5hbWUiOiJNZXJpZW0iLCJsYXN0TmFtZSI6Ik91YWxpIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzc2MDE3NDk5LCJleHAiOjE3NzYwMTgzOTl9.cNvWMQpyxrgsJJTNvt-i9uqPi-qb1G4LOV02HK6hlwg
+@matchId    = e492ee4c-99a6-462a-9d43-241d431cb663
+
+
+# ══════════════════════════════════════════════════════════════════
+#  1. GET MY MATCHES
+# ══════════════════════════════════════════════════════════════════
+
+### ✅ All matches — perfect first, then partial
+GET {{baseUrl}}/matches
+Authorization: Bearer {{token}}
+
+### ✅ Filter — perfect matches only
+GET {{baseUrl}}/matches?type=perfect
+Authorization: Bearer {{token}}
+
+### ✅ Filter — partial matches only
+GET {{baseUrl}}/matches?type=partial
+Authorization: Bearer {{token}}
+
+### ✅ Filter — by skill category
+GET {{baseUrl}}/matches?category=tech
+Authorization: Bearer {{token}}
+
+### ✅ Filter — by skill level
+GET {{baseUrl}}/matches?level=beginner
+Authorization: Bearer {{token}}
+
+### ✅ Sort — by rating (default is score)
+GET {{baseUrl}}/matches?sort=rating
+Authorization: Bearer {{token}}
+
+### ✅ Sort — by number of sessions completed
+GET {{baseUrl}}/matches?sort=sessions
+Authorization: Bearer {{token}}
+
+### ✅ Pagination
+GET {{baseUrl}}/matches?page=1&limit=5
+Authorization: Bearer {{token}}
+
+### ✅ Combined filters
+GET {{baseUrl}}/matches?type=perfect&category=tech&sort=rating&page=1&limit=10
+Authorization: Bearer {{token}}
+
+### ❌ No token (401)
+GET {{baseUrl}}/matches
+
+### ❌ Invalid type value (400)
+GET {{baseUrl}}/matches?type=superMatch
+Authorization: Bearer {{token}}
+
+### ❌ Invalid sort value (400)
+GET {{baseUrl}}/matches?sort=alphabetical
+Authorization: Bearer {{token}}
+
+
+# ══════════════════════════════════════════════════════════════════
+#  2. GET SINGLE MATCH
+# ══════════════════════════════════════════════════════════════════
+
+### ✅ Get match detail
+GET {{baseUrl}}/matches/{{matchId}}
+Authorization: Bearer {{token}}
+
+### ❌ Match not found (404)
+GET {{baseUrl}}/matches/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}
+
+### ❌ Invalid UUID (400)
+GET {{baseUrl}}/matches/not-a-uuid
+Authorization: Bearer {{token}}
+
+### ❌ Match belongs to someone else (403)
+###   Use a matchId from another user's matches
+GET {{baseUrl}}/matches/e492ee4c-99a6-462a-9d43-241d431cb669
+Authorization: Bearer {{token}}
+
+
+# ══════════════════════════════════════════════════════════════════
+#  3. MANUAL RECALCULATE (admin only)
+# ══════════════════════════════════════════════════════════════════
+
+### ✅ Admin — trigger recalculation
+POST {{baseUrl}}/matches/recalculate
+Authorization: Bearer {{adminToken}}
+
+### ❌ Regular user — forbidden (403)
+POST {{baseUrl}}/matches/recalculate
+Authorization: Bearer {{token}}
+
+### ❌ No token (401)
+POST {{baseUrl}}/matches/recalculate
