@@ -1,0 +1,310 @@
+# ══════════════════════════════════════════════════════════════════
+#  skilo API — Sessions (FC-04) · Credits (FC-06) · Reviews (FC-05)
+#  @token      → user A access_token (initiator)
+#  @tokenB     → user B access_token (recipient)
+#  @sessionId  → paste from POST /sessions response
+#  @matchId    → paste from GET /matches response
+# ══════════════════════════════════════════════════════════════════
+
+@baseUrl    = http://localhost:2006
+@token      = PASTE_USER_A_TOKEN
+@tokenB     = PASTE_USER_B_TOKEN
+@sessionId  = PASTE_SESSION_UUID
+@matchId    = PASTE_MATCH_UUID
+@skillA     = 6a986e85-a817-4c45-b15f-7213dfcf8893   # skill A offers
+@skillB     = PASTE_SKILL_UUID   # skill B offers
+
+
+# ══════════════════════════════════════════════════════════════════
+#  SESSIONS — FC-04
+# ══════════════════════════════════════════════════════════════════
+
+# ─── Propose ──────────────────────────────────────────────────────
+
+### ✅ Propose a session (user A → user B)
+POST {{baseUrl}}/sessions
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "recipientId": "4ad84843-d5e9-4dc9-bc7f-18003d929281",
+  "scheduledAt": "2026-05-01T14:00:00.000Z",
+  "duration": 60,
+  "offeredSkillId": "{{skillA}}",
+  "wantedSkillId": "{{skillB}}",
+  "message": "Salut ! Tu m'apprends React, je t'apprends Python ?"
+}
+
+### ❌ Propose — date too soon, less than 2h (400)
+POST {{baseUrl}}/sessions
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "recipientId": "4ad84843-d5e9-4dc9-bc7f-18003d929281",
+  "scheduledAt": "2026-04-13T15:00:00.000Z",
+  "duration": 60,
+  "offeredSkillId": "{{skillA}}",
+  "wantedSkillId": "{{skillB}}"
+}
+
+### ❌ Propose — date more than 30 days (400)
+POST {{baseUrl}}/sessions
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "recipientId": "4ad84843-d5e9-4dc9-bc7f-18003d929281",
+  "scheduledAt": "2026-07-01T14:00:00.000Z",
+  "duration": 60,
+  "offeredSkillId": "{{skillA}}",
+  "wantedSkillId": "{{skillB}}"
+}
+
+### ❌ Propose — session already exists between the two users (409)
+POST {{baseUrl}}/sessions
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "recipientId": "4ad84843-d5e9-4dc9-bc7f-18003d929281",
+  "scheduledAt": "2026-05-02T10:00:00.000Z",
+  "duration": 30,
+  "offeredSkillId": "{{skillA}}",
+  "wantedSkillId": "{{skillB}}"
+}
+
+### ❌ Propose — invalid duration value (400)
+POST {{baseUrl}}/sessions
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "recipientId": "4ad84843-d5e9-4dc9-bc7f-18003d929281",
+  "scheduledAt": "2026-05-01T14:00:00.000Z",
+  "duration": 45,
+  "offeredSkillId": "{{skillA}}",
+  "wantedSkillId": "{{skillB}}"
+}
+
+
+# ─── List sessions ────────────────────────────────────────────────
+
+### ✅ GET upcoming sessions
+GET {{baseUrl}}/sessions?tab=upcoming
+Authorization: Bearer {{token}}
+
+### ✅ GET past sessions
+GET {{baseUrl}}/sessions?tab=past
+Authorization: Bearer {{token}}
+
+### ✅ GET with pagination
+GET {{baseUrl}}/sessions?tab=upcoming&page=1&limit=5
+Authorization: Bearer {{token}}
+
+
+# ─── Session detail ───────────────────────────────────────────────
+
+### ✅ GET session by id
+GET {{baseUrl}}/sessions/{{sessionId}}
+Authorization: Bearer {{token}}
+
+### ❌ Session not found (404)
+GET {{baseUrl}}/sessions/00000000-0000-0000-0000-000000000000
+Authorization: Bearer {{token}}
+
+### ❌ Session belongs to someone else (403)
+GET {{baseUrl}}/sessions/{{sessionId}}
+Authorization: Bearer {{tokenB}}
+
+
+# ─── Accept / Decline ─────────────────────────────────────────────
+
+### ✅ Accept — user B accepts the session
+PATCH {{baseUrl}}/sessions/{{sessionId}}/accept
+Authorization: Bearer {{tokenB}}
+
+### ✅ Decline — user B declines with a reason
+PATCH {{baseUrl}}/sessions/{{sessionId}}/decline
+Content-Type: application/json
+Authorization: Bearer {{tokenB}}
+
+{
+  "reason": "Je ne suis pas disponible ce jour-là."
+}
+
+### ❌ Accept — user A tries to accept their own session (403)
+PATCH {{baseUrl}}/sessions/{{sessionId}}/accept
+Authorization: Bearer {{token}}
+
+### ❌ Accept — session already confirmed (400)
+PATCH {{baseUrl}}/sessions/{{sessionId}}/accept
+Authorization: Bearer {{tokenB}}
+
+
+# ─── Cancel ───────────────────────────────────────────────────────
+
+### ✅ Cancel — initiator cancels
+PATCH {{baseUrl}}/sessions/{{sessionId}}/cancel
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "reason": "Changement de planning."
+}
+
+### ✅ Cancel — recipient cancels (no reason)
+PATCH {{baseUrl}}/sessions/{{sessionId}}/cancel
+Content-Type: application/json
+Authorization: Bearer {{tokenB}}
+
+{}
+
+### ❌ Cancel — session already cancelled (400)
+PATCH {{baseUrl}}/sessions/{{sessionId}}/cancel
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{}
+
+
+# ─── Confirm completion ───────────────────────────────────────────
+
+### ✅ Confirm — user A says the session happened
+PATCH {{baseUrl}}/sessions/{{sessionId}}/confirm
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "didHappen": true
+}
+
+### ✅ Confirm — user B confirms too → status becomes completed
+PATCH {{baseUrl}}/sessions/{{sessionId}}/confirm
+Content-Type: application/json
+Authorization: Bearer {{tokenB}}
+
+{
+  "didHappen": true
+}
+
+### ✅ Dispute — user A says yes, user B says no → status becomes disputed
+PATCH {{baseUrl}}/sessions/{{sessionId}}/confirm
+Content-Type: application/json
+Authorization: Bearer {{tokenB}}
+
+{
+  "didHappen": false
+}
+
+### ❌ Confirm — session not yet confirmed (400)
+PATCH {{baseUrl}}/sessions/{{sessionId}}/confirm
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "didHappen": true
+}
+
+
+# ══════════════════════════════════════════════════════════════════
+#  CREDITS — FC-06
+# ══════════════════════════════════════════════════════════════════
+
+### ✅ GET /credits/balance — available, reserved, total
+GET {{baseUrl}}/credits/balance
+Authorization: Bearer {{token}}
+
+### ✅ GET /credits/history — full transaction log
+GET {{baseUrl}}/credits/history
+Authorization: Bearer {{token}}
+
+### ✅ GET /credits/history — paginated
+GET {{baseUrl}}/credits/history?page=1&limit=10
+Authorization: Bearer {{token}}
+
+### ❌ No token (401)
+GET {{baseUrl}}/credits/balance
+
+
+# ══════════════════════════════════════════════════════════════════
+#  REVIEWS — FC-05
+# ══════════════════════════════════════════════════════════════════
+
+### ✅ POST /reviews — user A reviews user B (after session completed)
+POST {{baseUrl}}/reviews
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "sessionId": "{{sessionId}}",
+  "globalRating": 5,
+  "pedagogyRating": 5,
+  "punctualityRating": 4,
+  "communicationRating": 5,
+  "comment": "Excellente session, très pédagogue !"
+}
+
+### ✅ POST /reviews — user B reviews user A
+POST {{baseUrl}}/reviews
+Content-Type: application/json
+Authorization: Bearer {{tokenB}}
+
+{
+  "sessionId": "{{sessionId}}",
+  "globalRating": 4,
+  "pedagogyRating": 4,
+  "comment": "Bonne session, contenu intéressant."
+}
+
+### ❌ Review — session not completed (403)
+POST {{baseUrl}}/reviews
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "sessionId": "{{sessionId}}",
+  "globalRating": 3
+}
+
+### ❌ Review — already submitted (409)
+POST {{baseUrl}}/reviews
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "sessionId": "{{sessionId}}",
+  "globalRating": 5
+}
+
+### ❌ Review — missing globalRating (400)
+POST {{baseUrl}}/reviews
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "sessionId": "{{sessionId}}",
+  "pedagogyRating": 4
+}
+
+### ❌ Review — rating out of range (400)
+POST {{baseUrl}}/reviews
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "sessionId": "{{sessionId}}",
+  "globalRating": 6
+}
+
+### ✅ GET /reviews/session/:id — visible reviews for a session
+GET {{baseUrl}}/reviews/session/{{sessionId}}
+Authorization: Bearer {{token}}
+
+### ✅ GET /users/:id/reviews — public reviews on a user profile
+GET {{baseUrl}}/users/PASTE_USER_UUID/reviews
+Authorization: Bearer {{token}}
+
+### ✅ GET /users/:id/reviews — paginated
+GET {{baseUrl}}/users/PASTE_USER_UUID/reviews?page=1&limit=10
+Authorization: Bearer {{token}}

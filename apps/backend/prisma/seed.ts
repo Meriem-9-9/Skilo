@@ -13,878 +13,781 @@ const prisma = new PrismaClient({ adapter });
 
 // ── helpers ────────────────────────────────────────────────
 //fonction
-const hash = (pwd: string) => bcrypt.hashSync(pwd, 12);
+// const hash = (pwd: string) => bcrypt.hashSync(pwd, 12);
 
-const future = (days: number) => {
-  const d = new Date();
-  d.setDate(d.getDate() + days);
-  return d;
-};
+// const future = (days: number) => {
+//   const d = new Date();
+//   d.setDate(d.getDate() + days);
+//   return d;
+// };
 
-const past = (days: number) => {
-  const d = new Date();
-  d.setDate(d.getDate() - days);
-  return d;
-};
+// const past = (days: number) => {
+//   const d = new Date();
+//   d.setDate(d.getDate() - days);
+//   return d;
+// };
 
 // ── main ───────────────────────────────────────────────────
 async function main() {
-  console.log('🌱  Seeding skilo …');
+  console.log('🌱 Seeding database...\n');
 
-  // ──────────────────────────────────────────────────────────
-  // 1. SKILL CATALOG  (entrées seed — createdById = null)
-  // ──────────────────────────────────────────────────────────
-  console.log('  → skill_catalog');
+  // ════════════════════════════════════════════════════════════════
+  // 0. CLEAN existing seed data (safe to re-run)
+  // ════════════════════════════════════════════════════════════════
+  await prisma.notification.deleteMany();
+  await prisma.review.deleteMany();
+  await prisma.creditTransaction.deleteMany();
+  await prisma.session.deleteMany();
+  await prisma.match.deleteMany();
+  await prisma.userSkill.deleteMany();
+  await prisma.skillCatalog.deleteMany();
+  await prisma.tokenBlacklist.deleteMany();
+  await prisma.user.deleteMany();
 
-  const skills = await Promise.all([
-    // tech
-    prisma.skillCatalog.upsert({
-      where: { id: '00000000-0000-0000-0000-000000000001' },
-      update: {},
-      create: {
-        id: '00000000-0000-0000-0000-000000000001',
-        name: 'JavaScript',
-        category: 'tech',
-        aliases: ['JS', 'ECMAScript'],
-        usageCount: 0,
-      },
-    }),
-    prisma.skillCatalog.upsert({
-      where: { id: '00000000-0000-0000-0000-000000000002' },
-      update: {},
-      create: {
-        id: '00000000-0000-0000-0000-000000000002',
+  console.log('✅ Cleaned existing data\n');
+
+  // ════════════════════════════════════════════════════════════════
+  // 1. SKILL CATALOG — 30 approved + 2 pending_review
+  // ════════════════════════════════════════════════════════════════
+  const skills = await prisma.$transaction([
+    // ── Tech ─────────────────────────────────────────────────────
+    prisma.skillCatalog.create({
+      data: {
         name: 'Python',
         category: 'tech',
+        status: 'approved',
         aliases: ['py'],
-        usageCount: 0,
+        usageCount: 120,
       },
     }),
-    prisma.skillCatalog.upsert({
-      where: { id: '00000000-0000-0000-0000-000000000003' },
-      update: {},
-      create: {
-        id: '00000000-0000-0000-0000-000000000003',
+    prisma.skillCatalog.create({
+      data: {
+        name: 'JavaScript',
+        category: 'tech',
+        status: 'approved',
+        aliases: ['JS', 'js'],
+        usageCount: 200,
+      },
+    }),
+    prisma.skillCatalog.create({
+      data: {
         name: 'React',
         category: 'tech',
-        aliases: ['ReactJS', 'React.js'],
-        usageCount: 0,
+        status: 'approved',
+        aliases: ['ReactJS'],
+        usageCount: 180,
       },
     }),
-    prisma.skillCatalog.upsert({
-      where: { id: '00000000-0000-0000-0000-000000000004' },
-      update: {},
-      create: {
-        id: '00000000-0000-0000-0000-000000000004',
-        name: 'Node.js',
+    prisma.skillCatalog.create({
+      data: {
+        name: 'NestJS',
         category: 'tech',
-        aliases: ['NodeJS', 'Node'],
-        usageCount: 0,
+        status: 'approved',
+        aliases: ['Nest'],
+        usageCount: 60,
       },
     }),
-    prisma.skillCatalog.upsert({
-      where: { id: '00000000-0000-0000-0000-000000000005' },
-      update: {},
-      create: {
-        id: '00000000-0000-0000-0000-000000000005',
-        name: 'UI/UX Design',
+    prisma.skillCatalog.create({
+      data: {
+        name: 'TypeScript',
         category: 'tech',
-        aliases: ['UX', 'UI Design', 'Figma'],
-        usageCount: 0,
+        status: 'approved',
+        aliases: ['TS'],
+        usageCount: 140,
       },
     }),
-    // languages
-    prisma.skillCatalog.upsert({
-      where: { id: '00000000-0000-0000-0000-000000000006' },
-      update: {},
-      create: {
-        id: '00000000-0000-0000-0000-000000000006',
-        name: 'Anglais',
+    prisma.skillCatalog.create({
+      data: {
+        name: 'PostgreSQL',
+        category: 'tech',
+        status: 'approved',
+        aliases: ['postgres', 'pg'],
+        usageCount: 80,
+      },
+    }),
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Docker',
+        category: 'tech',
+        status: 'approved',
+        aliases: [],
+        usageCount: 55,
+      },
+    }),
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Git',
+        category: 'tech',
+        status: 'approved',
+        aliases: ['GitHub', 'GitLab'],
+        usageCount: 95,
+      },
+    }),
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Figma',
+        category: 'tech',
+        status: 'approved',
+        aliases: [],
+        usageCount: 75,
+      },
+    }),
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Machine Learning',
+        category: 'tech',
+        status: 'approved',
+        aliases: ['ML', 'AI'],
+        usageCount: 40,
+      },
+    }),
+
+    // ── Languages ─────────────────────────────────────────────────
+    prisma.skillCatalog.create({
+      data: {
+        name: 'English',
         category: 'languages',
-        aliases: ['English', 'EN'],
-        usageCount: 0,
+        status: 'approved',
+        aliases: ['Anglais'],
+        usageCount: 300,
       },
     }),
-    prisma.skillCatalog.upsert({
-      where: { id: '00000000-0000-0000-0000-000000000007' },
-      update: {},
-      create: {
-        id: '00000000-0000-0000-0000-000000000007',
-        name: 'Espagnol',
+    prisma.skillCatalog.create({
+      data: {
+        name: 'French',
         category: 'languages',
-        aliases: ['Spanish', 'ES'],
-        usageCount: 0,
+        status: 'approved',
+        aliases: ['Français'],
+        usageCount: 150,
       },
     }),
-    prisma.skillCatalog.upsert({
-      where: { id: '00000000-0000-0000-0000-000000000008' },
-      update: {},
-      create: {
-        id: '00000000-0000-0000-0000-000000000008',
-        name: 'Arabe',
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Spanish',
         category: 'languages',
-        aliases: ['Arabic', 'AR'],
-        usageCount: 0,
+        status: 'approved',
+        aliases: ['Español'],
+        usageCount: 90,
       },
     }),
-    // arts
-    prisma.skillCatalog.upsert({
-      where: { id: '00000000-0000-0000-0000-000000000009' },
-      update: {},
-      create: {
-        id: '00000000-0000-0000-0000-000000000009',
-        name: 'Photographie',
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Arabic',
+        category: 'languages',
+        status: 'approved',
+        aliases: ['Arabe'],
+        usageCount: 110,
+      },
+    }),
+    prisma.skillCatalog.create({
+      data: {
+        name: 'German',
+        category: 'languages',
+        status: 'approved',
+        aliases: ['Allemand'],
+        usageCount: 45,
+      },
+    }),
+
+    // ── Arts ──────────────────────────────────────────────────────
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Photography',
         category: 'arts',
-        aliases: ['Photo', 'Photography'],
-        usageCount: 0,
+        status: 'approved',
+        aliases: ['Photo'],
+        usageCount: 65,
       },
     }),
-    prisma.skillCatalog.upsert({
-      where: { id: '00000000-0000-0000-0000-000000000010' },
-      update: {},
-      create: {
-        id: '00000000-0000-0000-0000-000000000010',
-        name: 'Guitare',
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Graphic Design',
         category: 'arts',
-        aliases: ['Guitar'],
-        usageCount: 0,
+        status: 'approved',
+        aliases: ['Design'],
+        usageCount: 85,
       },
     }),
-    // business
-    prisma.skillCatalog.upsert({
-      where: { id: '00000000-0000-0000-0000-000000000011' },
-      update: {},
-      create: {
-        id: '00000000-0000-0000-0000-000000000011',
-        name: 'Marketing Digital',
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Music',
+        category: 'arts',
+        status: 'approved',
+        aliases: ['Guitar', 'Piano'],
+        usageCount: 70,
+      },
+    }),
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Drawing',
+        category: 'arts',
+        status: 'approved',
+        aliases: ['Illustration'],
+        usageCount: 50,
+      },
+    }),
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Video Editing',
+        category: 'arts',
+        status: 'approved',
+        aliases: ['Montage vidéo'],
+        usageCount: 55,
+      },
+    }),
+
+    // ── Business ──────────────────────────────────────────────────
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Excel',
         category: 'business',
-        aliases: ['Digital Marketing', 'SEO/SEA'],
-        usageCount: 0,
+        status: 'approved',
+        aliases: ['Tableur'],
+        usageCount: 130,
       },
     }),
-    prisma.skillCatalog.upsert({
-      where: { id: '00000000-0000-0000-0000-000000000012' },
-      update: {},
-      create: {
-        id: '00000000-0000-0000-0000-000000000012',
-        name: 'Comptabilité',
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Public Speaking',
         category: 'business',
-        aliases: ['Accounting', 'Finance'],
-        usageCount: 0,
+        status: 'approved',
+        aliases: ['Prise de parole'],
+        usageCount: 60,
       },
     }),
-    // cooking
-    prisma.skillCatalog.upsert({
-      where: { id: '00000000-0000-0000-0000-000000000013' },
-      update: {},
-      create: {
-        id: '00000000-0000-0000-0000-000000000013',
-        name: 'Cuisine marocaine',
-        category: 'cooking',
-        aliases: ['Moroccan cooking', 'Tajine'],
-        usageCount: 0,
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Marketing',
+        category: 'business',
+        status: 'approved',
+        aliases: [],
+        usageCount: 75,
       },
     }),
-    // sport
-    prisma.skillCatalog.upsert({
-      where: { id: '00000000-0000-0000-0000-000000000014' },
-      update: {},
-      create: {
-        id: '00000000-0000-0000-0000-000000000014',
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Accounting',
+        category: 'business',
+        status: 'approved',
+        aliases: ['Comptabilité'],
+        usageCount: 40,
+      },
+    }),
+
+    // ── Sport ─────────────────────────────────────────────────────
+    prisma.skillCatalog.create({
+      data: {
         name: 'Yoga',
         category: 'sport',
-        aliases: ['Hatha Yoga', 'Vinyasa'],
+        status: 'approved',
+        aliases: [],
+        usageCount: 45,
+      },
+    }),
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Swimming',
+        category: 'sport',
+        status: 'approved',
+        aliases: ['Natation'],
+        usageCount: 35,
+      },
+    }),
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Football',
+        category: 'sport',
+        status: 'approved',
+        aliases: ['Soccer'],
+        usageCount: 80,
+      },
+    }),
+
+    // ── Cooking ───────────────────────────────────────────────────
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Cooking',
+        category: 'cooking',
+        status: 'approved',
+        aliases: ['Cuisine'],
+        usageCount: 90,
+      },
+    }),
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Pastry',
+        category: 'cooking',
+        status: 'approved',
+        aliases: ['Pâtisserie'],
+        usageCount: 50,
+      },
+    }),
+
+    // ── Other ─────────────────────────────────────────────────────
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Meditation',
+        category: 'other',
+        status: 'approved',
+        aliases: [],
+        usageCount: 30,
+      },
+    }),
+
+    // ── Pending review (admin test) ───────────────────────────────
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Darija marocaine',
+        category: 'languages',
+        status: 'pending_review',
+        aliases: ['Darija'],
+        usageCount: 0,
+      },
+    }),
+    prisma.skillCatalog.create({
+      data: {
+        name: 'Prompt Engineering',
+        category: 'tech',
+        status: 'pending_review',
+        aliases: ['Prompting'],
         usageCount: 0,
       },
     }),
   ]);
 
-  const [
-    skillJS,
-    skillPython,
-    skillReact,
-    skillNode,
-    skillUXUI,
-    skillAnglais,
-    skillEspagnol,
-    skillArabe,
-    skillPhoto,
-    skillGuitare,
-    skillMarketing,
-    skillCompta,
-    skillCuisine,
-    skillYoga,
-  ] = skills;
+  // Named shortcuts for the skills we use in user profiles
+  const skillPython = skills[0]; // Python
+  const skillReact = skills[2]; // React
+  const skillFigma = skills[8]; // Figma
+  const skillEnglish = skills[10]; // English
 
-  // ──────────────────────────────────────────────────────────
-  // 2. USERS  (mot de passe : Password123!)
-  // ──────────────────────────────────────────────────────────
-  console.log('  → users');
+  console.log('✅ Skills created:', skills.length);
 
-  const PWD = hash('Password123!');
+  // ════════════════════════════════════════════════════════════════
+  // 2. USERS
+  // ════════════════════════════════════════════════════════════════
+  const passwordHash = await bcrypt.hash('Password123', 12);
 
-  const zakariae = await prisma.user.upsert({
-    where: { email: 'zakariae@skilo.app' },
-    update: {},
-    create: {
-      id: '11000000-0000-0000-0000-000000000001',
-      email: 'zakariae@skilo.app',
-      passwordHash: PWD,
-      firstName: 'Zakariae',
-      lastName: 'Benchekroun',
-      city: 'Casablanca',
-      bio: "Dev fullstack passionné par le partage de savoirs. J'enseigne JS/React et j'apprends la photo.",
-      avatarUrl: 'https://i.pravatar.cc/150?u=zakariae',
+  // ── Admin ────────────────────────────────────────────────────────
+  const admin = await prisma.user.create({
+    data: {
+      email: 'admin@skilo.com',
+      passwordHash,
+      firstName: 'Admin',
+      lastName: 'Skilo',
+      role: 'admin',
       isOnboarded: true,
+      isActive: true,
+      city: 'Casablanca',
+      bio: 'Administrateur de la plateforme skilo.',
+      creditBalance: 10,
+      profileScore: 40,
+    },
+  });
+
+  // ── User A — Zakariae (offers Python + Figma, wants React + English) ──
+  const userA = await prisma.user.create({
+    data: {
+      email: 'zakariae@skilo.com',
+      passwordHash,
+      firstName: 'Zakariae',
+      lastName: 'Benali',
+      role: 'user',
+      isOnboarded: true,
+      isActive: true,
+      city: 'Casablanca',
+      bio: "Développeur Python passionné par le design. J'apprends React en ce moment.",
+      avatarUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=Zakariae',
+      creditBalance: 5,
+      profileScore: 100,
+      sessionsCompleted: 3,
+      avgRating: 4.5,
+    },
+  });
+
+  // ── User B — Meriem (offers React + English, wants Python + Figma) ──
+  const userB = await prisma.user.create({
+    data: {
+      email: 'meriem@skilo.com',
+      passwordHash,
+      firstName: 'Meriem',
+      lastName: 'Tazi',
+      role: 'user',
+      isOnboarded: true,
+      isActive: true,
+      city: 'Rabat',
+      bio: 'Frontend developer & English tutor. Passionnée par le design et Python.',
+      avatarUrl: 'https://api.dicebear.com/7.x/initials/svg?seed=Meriem',
       creditBalance: 8,
       profileScore: 100,
-      avgRating: 4.8,
-      avgPedagogy: 4.9,
-      avgPunctuality: 4.7,
-      avgCommunication: 4.8,
-      sessionsCompleted: 5,
-      hasBadgeFiable: true,
-      lastLoginAt: past(1),
-    },
-  });
-
-  const meriem = await prisma.user.upsert({
-    where: { email: 'meriem@skilo.app' },
-    update: {},
-    create: {
-      id: '11000000-0000-0000-0000-000000000002',
-      email: 'meriem@skilo.app',
-      passwordHash: PWD,
-      firstName: 'Meriem',
-      lastName: 'Ouali',
-      city: 'Rabat',
-      bio: 'Designer UX/UI & photographe amateur. Je cherche à progresser en développement web.',
-      avatarUrl: 'https://i.pravatar.cc/150?u=meriem',
-      isOnboarded: true,
-      creditBalance: 6,
-      profileScore: 100,
-      avgRating: 4.6,
-      avgPedagogy: 4.5,
-      avgPunctuality: 4.8,
-      avgCommunication: 4.6,
       sessionsCompleted: 3,
-      hasBadgeFiable: true,
-      lastLoginAt: past(2),
+      avgRating: 4.8,
     },
   });
 
-  const youssef = await prisma.user.upsert({
-    where: { email: 'youssef@skilo.app' },
-    update: {},
-    create: {
-      id: '11000000-0000-0000-0000-000000000003',
-      email: 'youssef@skilo.app',
-      passwordHash: PWD,
-      firstName: 'Youssef',
-      lastName: 'Alami',
-      city: 'Marrakech',
-      bio: "Guitariste et prof de musique. J'apprends Python pour automatiser mes partitions.",
-      avatarUrl: 'https://i.pravatar.cc/150?u=youssef',
-      isOnboarded: true,
-      creditBalance: 4,
-      profileScore: 90,
-      avgRating: 4.9,
-      sessionsCompleted: 2,
-      hasBadgeFiable: false,
-      lastLoginAt: past(5),
-    },
-  });
+  console.log('✅ Users created: admin, userA (Zakariae), userB (Meriem)');
 
-  const sofia = await prisma.user.upsert({
-    where: { email: 'sofia@skilo.app' },
-    update: {},
-    create: {
-      id: '11000000-0000-0000-0000-000000000004',
-      email: 'sofia@skilo.app',
-      passwordHash: PWD,
-      firstName: 'Sofia',
-      lastName: 'Tazi',
-      city: 'Casablanca',
-      bio: "Comptable de formation, je veux apprendre le marketing digital. J'enseigne le yoga en parallèle.",
-      avatarUrl: 'https://i.pravatar.cc/150?u=sofia',
-      isOnboarded: true,
-      creditBalance: 5,
-      profileScore: 80,
-      avgRating: 4.4,
-      sessionsCompleted: 1,
-      hasBadgeFiable: false,
-      lastLoginAt: past(3),
-    },
-  });
+  // ════════════════════════════════════════════════════════════════
+  // 3. USER SKILLS
+  // ════════════════════════════════════════════════════════════════
 
-  // Utilisateur en cours d'onboarding — step 2
-  const newUser = await prisma.user.upsert({
-    where: { email: 'nouveau@skilo.app' },
-    update: {},
-    create: {
-      id: '11000000-0000-0000-0000-000000000005',
-      email: 'nouveau@skilo.app',
-      passwordHash: PWD,
-      firstName: 'Karim',
-      lastName: 'Idrissi',
-      city: 'Fès',
-      isOnboarded: false,
-      creditBalance: 2, // welcome_bonus
-    },
-  });
-
-  // ──────────────────────────────────────────────────────────
-  // 3. USER_SKILLS
-  // ──────────────────────────────────────────────────────────
-  console.log('  → user_skills');
-
-  // Zakariae : offre JS + React + Node, cherche Photo + Guitare
+  // User A: offers Python (intermediate) + Figma (advanced)
+  //         wants  React (beginner)       + English (intermediate)
   await prisma.userSkill.createMany({
-    skipDuplicates: true,
     data: [
       {
-        userId: zakariae.id,
-        skillCatalogId: skillJS.id,
-        type: 'offered',
-        level: 'advanced',
-      },
-      {
-        userId: zakariae.id,
-        skillCatalogId: skillReact.id,
-        type: 'offered',
-        level: 'advanced',
-      },
-      {
-        userId: zakariae.id,
-        skillCatalogId: skillNode.id,
+        userId: userA.id,
+        skillCatalogId: skillPython.id,
         type: 'offered',
         level: 'intermediate',
       },
       {
-        userId: zakariae.id,
-        skillCatalogId: skillPhoto.id,
-        type: 'wanted',
-        level: 'beginner',
-      },
-      {
-        userId: zakariae.id,
-        skillCatalogId: skillGuitare.id,
-        type: 'wanted',
-        level: 'beginner',
-      },
-    ],
-  });
-
-  // Meriem : offre UX/UI + Photo, cherche JS + React
-  await prisma.userSkill.createMany({
-    skipDuplicates: true,
-    data: [
-      {
-        userId: meriem.id,
-        skillCatalogId: skillUXUI.id,
+        userId: userA.id,
+        skillCatalogId: skillFigma.id,
         type: 'offered',
         level: 'advanced',
       },
       {
-        userId: meriem.id,
-        skillCatalogId: skillPhoto.id,
-        type: 'offered',
-        level: 'intermediate',
-      },
-      {
-        userId: meriem.id,
-        skillCatalogId: skillAnglais.id,
-        type: 'offered',
-        level: 'advanced',
-      },
-      {
-        userId: meriem.id,
-        skillCatalogId: skillJS.id,
-        type: 'wanted',
-        level: 'beginner',
-      },
-      {
-        userId: meriem.id,
+        userId: userA.id,
         skillCatalogId: skillReact.id,
         type: 'wanted',
         level: 'beginner',
       },
+      {
+        userId: userA.id,
+        skillCatalogId: skillEnglish.id,
+        type: 'wanted',
+        level: 'intermediate',
+      },
     ],
   });
 
-  // Youssef : offre Guitare + Arabe + Cuisine, cherche Python
+  // User B: offers React (intermediate) + English (advanced)
+  //         wants  Python (beginner)     + Figma (intermediate)
   await prisma.userSkill.createMany({
-    skipDuplicates: true,
     data: [
       {
-        userId: youssef.id,
-        skillCatalogId: skillGuitare.id,
-        type: 'offered',
-        level: 'advanced',
-      },
-      {
-        userId: youssef.id,
-        skillCatalogId: skillArabe.id,
-        type: 'offered',
-        level: 'advanced',
-      },
-      {
-        userId: youssef.id,
-        skillCatalogId: skillCuisine.id,
+        userId: userB.id,
+        skillCatalogId: skillReact.id,
         type: 'offered',
         level: 'intermediate',
       },
       {
-        userId: youssef.id,
+        userId: userB.id,
+        skillCatalogId: skillEnglish.id,
+        type: 'offered',
+        level: 'advanced',
+      },
+      {
+        userId: userB.id,
         skillCatalogId: skillPython.id,
         type: 'wanted',
         level: 'beginner',
       },
-    ],
-  });
-
-  // Sofia : offre Compta + Yoga + Espagnol, cherche Marketing + Photo
-  await prisma.userSkill.createMany({
-    skipDuplicates: true,
-    data: [
       {
-        userId: sofia.id,
-        skillCatalogId: skillCompta.id,
-        type: 'offered',
-        level: 'advanced',
-      },
-      {
-        userId: sofia.id,
-        skillCatalogId: skillYoga.id,
-        type: 'offered',
-        level: 'intermediate',
-      },
-      {
-        userId: sofia.id,
-        skillCatalogId: skillEspagnol.id,
-        type: 'offered',
-        level: 'intermediate',
-      },
-      {
-        userId: sofia.id,
-        skillCatalogId: skillMarketing.id,
+        userId: userB.id,
+        skillCatalogId: skillFigma.id,
         type: 'wanted',
-        level: 'beginner',
-      },
-      {
-        userId: sofia.id,
-        skillCatalogId: skillPhoto.id,
-        type: 'wanted',
-        level: 'beginner',
+        level: 'intermediate',
       },
     ],
   });
 
-  // ──────────────────────────────────────────────────────────
-  // 4. MATCHES
-  // Zakariae <-> Meriem : match parfait (JS⇄Photo, React⇄UX)
-  // Zakariae <-> Youssef : match partiel (Node⇄Python)
-  // ──────────────────────────────────────────────────────────
-  console.log('  → matches');
+  // Update usageCount on used skills
+  await prisma.skillCatalog.updateMany({
+    where: {
+      id: {
+        in: [skillPython.id, skillReact.id, skillFigma.id, skillEnglish.id],
+      },
+    },
+    data: { usageCount: { increment: 2 } },
+  });
 
-  // Canonical order : userAId < userBId (string comparison)
-  const [uidA_ZM, uidB_ZM] =
-    zakariae.id < meriem.id
-      ? [zakariae.id, meriem.id]
-      : [meriem.id, zakariae.id];
+  console.log('✅ UserSkills created');
 
-  const [uidA_ZY, uidB_ZY] =
-    zakariae.id < youssef.id
-      ? [zakariae.id, youssef.id]
-      : [youssef.id, zakariae.id];
+  // ════════════════════════════════════════════════════════════════
+  // 4. MATCH — perfect match between A and B
+  // Canonical order: smaller UUID first
+  // ════════════════════════════════════════════════════════════════
+  const [canonicalA, canonicalB] =
+    userA.id < userB.id ? [userA.id, userB.id] : [userB.id, userA.id];
 
-  const matchZM = await prisma.match.upsert({
-    where: { userAId_userBId: { userAId: uidA_ZM, userBId: uidB_ZM } },
-    update: {},
-    create: {
-      id: '22000000-0000-0000-0000-000000000001',
-      userAId: uidA_ZM,
-      userBId: uidB_ZM,
+  const match = await prisma.match.create({
+    data: {
+      userAId: canonicalA,
+      userBId: canonicalB,
       type: 'perfect',
-      score: 95,
+      score: 100,
       label: 'Très compatible',
       matchedPairs: [
-        { offered_by_a: skillJS.id, offered_by_b: skillPhoto.id },
-        { offered_by_a: skillReact.id, offered_by_b: skillUXUI.id },
+        { offeredByA: skillPython.id, offeredByB: skillReact.id },
+        { offeredByA: skillFigma.id, offeredByB: skillEnglish.id },
       ],
       status: 'active',
     },
   });
 
-  const matchZY = await prisma.match.upsert({
-    where: { userAId_userBId: { userAId: uidA_ZY, userBId: uidB_ZY } },
-    update: {},
-    create: {
-      id: '22000000-0000-0000-0000-000000000002',
-      userAId: uidA_ZY,
-      userBId: uidB_ZY,
-      type: 'partial',
-      score: 60,
-      label: 'Partiellement compatible',
-      matchedPairs: [
-        { offered_by_a: skillNode.id, offered_by_b: skillGuitare.id },
-      ],
-      status: 'active',
-    },
-  });
+  console.log('✅ Match created (perfect, score 100)');
 
-  // ──────────────────────────────────────────────────────────
-  // 5. SESSIONS
-  // S1 : Zakariae → Meriem, JS, passée + completed
-  // S2 : Meriem → Zakariae, UX, upcoming + confirmed
-  // S3 : Zakariae → Youssef, Node/Python, pending
-  // ──────────────────────────────────────────────────────────
-  console.log('  → sessions');
+  // ════════════════════════════════════════════════════════════════
+  // 5. SESSIONS — 4 different statuses to test all flows
+  // ════════════════════════════════════════════════════════════════
 
-  const session1 = await prisma.session.upsert({
-    where: { id: '33000000-0000-0000-0000-000000000001' },
-    update: {},
-    create: {
-      id: '33000000-0000-0000-0000-000000000001',
-      matchId: matchZM.id,
-      proposedById: zakariae.id,
-      recipientId: meriem.id,
-      scheduledAt: past(10),
+  const now = new Date();
+  const inFuture = (hours: number) =>
+    new Date(now.getTime() + hours * 3_600_000);
+  const inPast = (hours: number) => new Date(now.getTime() - hours * 3_600_000);
+
+  // ── Session 1: PENDING — proposed by A, not yet accepted by B ────
+  const sessionPending = await prisma.session.create({
+    data: {
+      matchId: match.id,
+      proposedById: userA.id,
+      recipientId: userB.id,
+      scheduledAt: inFuture(48),
       durationMinutes: 60,
-      modality: 'online',
-      meetingLink: 'https://meet.jit.si/skilo-zakariae-meriem-01',
-      message:
-        "On fait un tour des fondamentaux JS ? Je t'explique les closures.",
-      skillsExchanged: [{ skill: skillJS.id, direction: 'zakariae→meriem' }],
+      skillsExchanged: [
+        { skillCatalogId: skillPython.id, role: 'offered' },
+        { skillCatalogId: skillReact.id, role: 'wanted' },
+      ],
+      message: 'Salut Meriem ! On échange Python contre React ?',
+      status: 'pending',
+      creditsUsed: 0,
+      confirmationDeadline: inFuture(48 + 24),
+    },
+  });
+
+  // ── Session 2: CONFIRMED — accepted by B ──────────────────────────
+  const sessionConfirmed = await prisma.session.create({
+    data: {
+      matchId: match.id,
+      proposedById: userA.id,
+      recipientId: userB.id,
+      scheduledAt: inFuture(5),
+      durationMinutes: 90,
+      skillsExchanged: [
+        { skillCatalogId: skillFigma.id, role: 'offered' },
+        { skillCatalogId: skillEnglish.id, role: 'wanted' },
+      ],
+      message: 'Session Figma ↔ English demain !',
+      status: 'confirmed',
+      creditsUsed: 0,
+      confirmationDeadline: inFuture(5 + 24),
+    },
+  });
+
+  // ── Session 3: COMPLETED — both confirmed, credits distributed ────
+  const sessionCompleted = await prisma.session.create({
+    data: {
+      matchId: match.id,
+      proposedById: userA.id,
+      recipientId: userB.id,
+      scheduledAt: inPast(30),
+      durationMinutes: 60,
+      skillsExchanged: [
+        { skillCatalogId: skillPython.id, role: 'offered' },
+        { skillCatalogId: skillReact.id, role: 'wanted' },
+      ],
       status: 'completed',
       confirmedByA: true,
       confirmedByB: true,
-      confirmationDeadline: past(9),
-      creditsUsed: 0, // match parfait
-    },
-  });
-
-  const session2 = await prisma.session.upsert({
-    where: { id: '33000000-0000-0000-0000-000000000002' },
-    update: {},
-    create: {
-      id: '33000000-0000-0000-0000-000000000002',
-      matchId: matchZM.id,
-      proposedById: meriem.id,
-      recipientId: zakariae.id,
-      scheduledAt: future(3),
-      durationMinutes: 90,
-      modality: 'online',
-      meetingLink: 'https://meet.jit.si/skilo-meriem-zakariae-02',
-      message: 'Je te montre comment construire un design system sur Figma.',
-      skillsExchanged: [],
-      status: 'confirmed',
-      confirmedByA: false,
-      confirmedByB: false,
-      confirmationDeadline: future(4),
       creditsUsed: 0,
+      confirmationDeadline: inPast(6),
     },
   });
 
-  const session3 = await prisma.session.upsert({
-    where: { id: '33000000-0000-0000-0000-000000000003' },
-    update: {},
-    create: {
-      id: '33000000-0000-0000-0000-000000000003',
-      matchId: matchZY.id,
-      proposedById: zakariae.id,
-      recipientId: youssef.id,
-      scheduledAt: future(7),
-      durationMinutes: 60,
-      modality: 'online',
-      message: "Je t'explique Prisma + Node, en échange d'une intro guitare.",
-      skillsExchanged: [],
-      status: 'pending',
-      confirmedByA: false,
-      confirmedByB: false,
-      confirmationDeadline: future(8),
-      creditsUsed: 1, // match partiel
+  // ── Session 4: CANCELLED ──────────────────────────────────────────
+  const sessionCancelled = await prisma.session.create({
+    data: {
+      matchId: match.id,
+      proposedById: userB.id,
+      recipientId: userA.id,
+      scheduledAt: inPast(72),
+      durationMinutes: 30,
+      skillsExchanged: [
+        { skillCatalogId: skillEnglish.id, role: 'offered' },
+        { skillCatalogId: skillFigma.id, role: 'wanted' },
+      ],
+      status: 'cancelled',
+      cancelledById: userB.id,
+      cancellationReason: 'Empêchement de dernière minute.',
+      creditsUsed: 0,
+      confirmationDeadline: inPast(48),
     },
   });
 
-  // ──────────────────────────────────────────────────────────
-  // 6. REVIEWS  (session1 seulement — session complétée)
-  // ──────────────────────────────────────────────────────────
-  console.log('  → reviews');
+  console.log('✅ Sessions created: pending, confirmed, completed, cancelled');
 
-  const reviewZM = await prisma.review.upsert({
-    where: {
-      sessionId_reviewerId: {
-        sessionId: session1.id,
-        reviewerId: zakariae.id,
-      },
-    },
-    update: {},
-    create: {
-      id: '44000000-0000-0000-0000-000000000001',
-      sessionId: session1.id,
-      reviewerId: zakariae.id,
-      revieweeId: meriem.id,
-      skillCatalogId: skillUXUI.id,
-      rating: 5,
-      ratingPedagogy: 5,
-      ratingPunctuality: 5,
-      ratingCommunication: 5,
-      comment:
-        'Meriem est une excellente pédagogue, explications très claires !',
-      isVisible: true,
-      expiresAt: future(7 - 10 + 10), // submitted_at + 7j
-    },
-  });
+  // ════════════════════════════════════════════════════════════════
+  // 6. CREDIT TRANSACTIONS for the completed session
+  // ════════════════════════════════════════════════════════════════
 
-  const reviewMZ = await prisma.review.upsert({
-    where: {
-      sessionId_reviewerId: {
-        sessionId: session1.id,
-        reviewerId: meriem.id,
-      },
-    },
-    update: {},
-    create: {
-      id: '44000000-0000-0000-0000-000000000002',
-      sessionId: session1.id,
-      reviewerId: meriem.id,
-      revieweeId: zakariae.id,
-      skillCatalogId: skillJS.id,
-      rating: 5,
-      ratingPedagogy: 5,
-      ratingPunctuality: 4,
-      ratingCommunication: 5,
-      comment:
-        "Zakariae explique très bien, j'ai enfin compris les closures et le event loop !",
-      isVisible: true,
-      expiresAt: future(7),
-    },
-  });
-  console.log(reviewMZ);
-  console.log(reviewZM);
-
-  // ──────────────────────────────────────────────────────────
-  // 7. CREDIT_TRANSACTIONS
-  // ──────────────────────────────────────────────────────────
-  console.log('  → credit_transactions');
-
+  // Welcome bonuses (logged at registration)
   await prisma.creditTransaction.createMany({
-    skipDuplicates: true,
     data: [
-      // Zakariae
       {
-        id: '55000000-0000-0000-0000-000000000001',
-        userId: zakariae.id,
+        userId: userA.id,
         type: 'welcome_bonus',
         amount: 2,
         balanceAfter: 2,
-        description: 'Bonus de bienvenue',
+        description: "Crédit de bienvenue à l'inscription",
       },
       {
-        id: '55000000-0000-0000-0000-000000000002',
-        userId: zakariae.id,
-        type: 'profile_bonus',
-        amount: 3,
-        balanceAfter: 5,
-        description: 'Profil complété à 100 %',
+        userId: userB.id,
+        type: 'welcome_bonus',
+        amount: 2,
+        balanceAfter: 2,
+        description: "Crédit de bienvenue à l'inscription",
       },
+      // B earned 1 credit for teaching Python in the completed session
       {
-        id: '55000000-0000-0000-0000-000000000003',
-        userId: zakariae.id,
-        sessionId: session1.id,
+        userId: userB.id,
+        sessionId: sessionCompleted.id,
         type: 'session_earned',
-        amount: 3,
-        balanceAfter: 8,
-        description: 'Session complétée avec Meriem — JS',
+        amount: 1,
+        balanceAfter: 3,
+        description: '1 crédit(s) gagné(s) pour la session enseignée',
       },
-      // Meriem
+      // Profile bonus for both having 100% profile score
       {
-        id: '55000000-0000-0000-0000-000000000004',
-        userId: meriem.id,
-        type: 'welcome_bonus',
-        amount: 2,
-        balanceAfter: 2,
-        description: 'Bonus de bienvenue',
-      },
-      {
-        id: '55000000-0000-0000-0000-000000000005',
-        userId: meriem.id,
+        userId: userA.id,
         type: 'profile_bonus',
-        amount: 3,
-        balanceAfter: 5,
-        description: 'Profil complété à 100 %',
+        amount: 1,
+        balanceAfter: 3,
+        description: 'Bonus profil complet (100%)',
       },
       {
-        id: '55000000-0000-0000-0000-000000000006',
-        userId: meriem.id,
-        sessionId: session1.id,
-        type: 'session_earned',
-        amount: 3,
-        balanceAfter: 8,
-        description: 'Session complétée avec Zakariae — UX',
-      },
-      {
-        id: '55000000-0000-0000-0000-000000000007',
-        userId: meriem.id,
-        sessionId: session2.id,
-        type: 'session_reserved',
-        amount: -2,
-        balanceAfter: 6,
-        description: 'Crédits réservés — session confirmée avec Zakariae',
-      },
-      // Youssef
-      {
-        id: '55000000-0000-0000-0000-000000000008',
-        userId: youssef.id,
-        type: 'welcome_bonus',
-        amount: 2,
-        balanceAfter: 2,
-        description: 'Bonus de bienvenue',
-      },
-      {
-        id: '55000000-0000-0000-0000-000000000009',
-        userId: youssef.id,
+        userId: userB.id,
         type: 'profile_bonus',
-        amount: 3,
-        balanceAfter: 5,
-        description: 'Profil complété à 90 %',
-      },
-      // Karim — nouveau
-      {
-        id: '55000000-0000-0000-0000-000000000010',
-        userId: newUser.id,
-        type: 'welcome_bonus',
-        amount: 2,
-        balanceAfter: 2,
-        description: 'Bonus de bienvenue',
+        amount: 1,
+        balanceAfter: 4,
+        description: 'Bonus profil complet (100%)',
       },
     ],
   });
 
-  // ──────────────────────────────────────────────────────────
+  console.log('✅ Credit transactions created');
+
+  // ════════════════════════════════════════════════════════════════
+  // 7. REVIEWS for the completed session (both visible)
+  // ════════════════════════════════════════════════════════════════
+  const reviewWindow = new Date(now.getTime() + 7 * 24 * 3_600_000);
+
+  await prisma.review.createMany({
+    data: [
+      // A reviews B
+      {
+        sessionId: sessionCompleted.id,
+        reviewerId: userA.id,
+        revieweeId: userB.id,
+        skillCatalogId: skillReact.id,
+        rating: 5,
+        ratingPedagogy: 5,
+        ratingPunctuality: 4,
+        ratingCommunication: 5,
+        comment: 'Meriem explique très bien React, session au top !',
+        isVisible: true,
+        expiresAt: reviewWindow,
+      },
+      // B reviews A
+      {
+        sessionId: sessionCompleted.id,
+        reviewerId: userB.id,
+        revieweeId: userA.id,
+        skillCatalogId: skillPython.id,
+        rating: 4,
+        ratingPedagogy: 4,
+        ratingPunctuality: 5,
+        ratingCommunication: 4,
+        comment: 'Zakariae maîtrise bien Python, bonne session.',
+        isVisible: true,
+        expiresAt: reviewWindow,
+      },
+    ],
+  });
+
+  console.log('✅ Reviews created (both visible)');
+
+  // ════════════════════════════════════════════════════════════════
   // 8. NOTIFICATIONS
-  // ──────────────────────────────────────────────────────────
-  console.log('  → notifications');
-
+  // ════════════════════════════════════════════════════════════════
   await prisma.notification.createMany({
-    skipDuplicates: true,
     data: [
-      // Meriem reçoit un nouveau match parfait
       {
-        id: '66000000-0000-0000-0000-000000000001',
-        userId: meriem.id,
+        userId: userB.id,
+        type: 'session_proposed',
+        payload: {
+          fromUserFirstName: 'Zakariae',
+          sessionId: sessionPending.id,
+        },
+        isRead: false,
+      },
+      {
+        userId: userA.id,
         type: 'new_perfect_match',
-        payload: {
-          from_user: 'Zakariae',
-          match_id: matchZM.id,
-          score: 95,
-        },
-        isRead: true,
-        readAt: past(9),
-      },
-      // Meriem : session proposée par Zakariae (session1)
-      {
-        id: '66000000-0000-0000-0000-000000000002',
-        userId: meriem.id,
-        type: 'session_proposed',
-        payload: {
-          from_user: 'Zakariae',
-          session_id: session1.id,
-          session_date: past(10).toISOString(),
-        },
-        isRead: true,
-        readAt: past(10),
-      },
-      // Zakariae : session acceptée par Meriem (session2)
-      {
-        id: '66000000-0000-0000-0000-000000000003',
-        userId: zakariae.id,
-        type: 'session_accepted',
-        payload: {
-          from_user: 'Meriem',
-          session_id: session2.id,
-          session_date: future(3).toISOString(),
-        },
+        payload: { fromUserFirstName: 'Meriem' },
         isRead: false,
       },
-      // Zakariae : review reçue de Meriem
       {
-        id: '66000000-0000-0000-0000-000000000004',
-        userId: zakariae.id,
-        type: 'review_received',
-        payload: {
-          from_user: 'Meriem',
-          rating: 5,
-          session_id: session1.id,
-        },
-        isRead: false,
+        userId: userB.id,
+        type: 'new_perfect_match',
+        payload: { fromUserFirstName: 'Zakariae' },
+        isRead: true,
       },
-      // Zakariae : crédits gagnés après session1
       {
-        id: '66000000-0000-0000-0000-000000000005',
-        userId: zakariae.id,
+        userId: userA.id,
+        type: 'session_completed',
+        payload: { sessionId: sessionCompleted.id },
+        isRead: true,
+      },
+      {
+        userId: userB.id,
         type: 'credits_earned',
-        payload: { amount: 3, balance_after: 8, session_id: session1.id },
-        isRead: false,
-      },
-      // Youssef : nouvelle session proposée (session3)
-      {
-        id: '66000000-0000-0000-0000-000000000006',
-        userId: youssef.id,
-        type: 'session_proposed',
-        payload: {
-          from_user: 'Zakariae',
-          session_id: session3.id,
-          session_date: future(7).toISOString(),
-        },
-        isRead: false,
-      },
-      // Meriem : badge_earned après hasBadgeFiable
-      {
-        id: '66000000-0000-0000-0000-000000000007',
-        userId: meriem.id,
-        type: 'badge_earned',
-        payload: { badge: 'fiable', sessions_completed: 3 },
+        payload: { amount: 1, sessionId: sessionCompleted.id },
         isRead: false,
       },
     ],
   });
 
-  // ──────────────────────────────────────────────────────────
-  // 9. Mise à jour des usageCount du skill_catalog
-  // ──────────────────────────────────────────────────────────
-  console.log('  → usageCount skill_catalog');
+  console.log('✅ Notifications created\n');
 
-  const usageCounts: Record<string, number> = {};
-  const allUserSkills = await prisma.userSkill.findMany();
-  for (const us of allUserSkills) {
-    usageCounts[us.skillCatalogId] = (usageCounts[us.skillCatalogId] || 0) + 1;
-  }
-  for (const [id, count] of Object.entries(usageCounts)) {
-    await prisma.skillCatalog.update({
-      where: { id },
-      data: { usageCount: count },
-    });
-  }
+  // ════════════════════════════════════════════════════════════════
+  // 9. PRINT SUMMARY — copy these into your .http files
+  // ════════════════════════════════════════════════════════════════
+  console.log('═══════════════════════════════════════════════════');
+  console.log('📋 COPY THESE IDs INTO YOUR .HTTP FILES');
+  console.log('═══════════════════════════════════════════════════\n');
 
-  console.log('✅  Seed terminé !');
-  console.log('');
-  console.log('  Comptes créés (mot de passe : Password123!)');
-  console.log('  ┌──────────────────────────────────┬────────────┐');
-  console.log('  │ email                            │ rôle       │');
-  console.log('  ├──────────────────────────────────┼────────────┤');
-  console.log('  │ zakariae@skilo.app               │ dev        │');
-  console.log('  │ meriem@skilo.app                 │ designer   │');
-  console.log('  │ youssef@skilo.app                │ musicien   │');
-  console.log('  │ sofia@skilo.app                  │ comptable  │');
-  console.log('  │ nouveau@skilo.app                │ onboarding │');
-  console.log('  └──────────────────────────────────┴────────────┘');
+  console.log('👤 USERS');
+  console.log(`  Admin:   ${admin.id}  →  admin@skilo.com  / Password123`);
+  console.log(`  User A:  ${userA.id}  →  zakariae@skilo.com / Password123`);
+  console.log(`  User B:  ${userB.id}  →  meriem@skilo.com / Password123\n`);
+
+  console.log('🎯 SKILLS (use these in onboarding / addSkill)');
+  console.log(`  Python:  ${skillPython.id}`);
+  console.log(`  React:   ${skillReact.id}`);
+  console.log(`  Figma:   ${skillFigma.id}`);
+  console.log(`  English: ${skillEnglish.id}\n`);
+
+  console.log('🤝 MATCH');
+  console.log(`  Match (perfect A↔B): ${match.id}\n`);
+
+  console.log('📅 SESSIONS');
+  console.log(`  Pending:   ${sessionPending.id}`);
+  console.log(`  Confirmed: ${sessionConfirmed.id}`);
+  console.log(`  Completed: ${sessionCompleted.id}  ← use this for reviews`);
+  console.log(`  Cancelled: ${sessionCancelled.id}\n`);
+
+  console.log('═══════════════════════════════════════════════════');
+  console.log('🚀 Seed complete! Run your .http tests now.');
+  console.log('═══════════════════════════════════════════════════\n');
 }
 
 main()
   .catch((e) => {
-    console.error(e);
+    console.error('❌ Seed failed:', e);
     process.exit(1);
   })
-  .finally(() => prisma.$disconnect());
+  .finally(async () => {
+    await prisma.$disconnect();
+  });
