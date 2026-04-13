@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { MatchingController } from './matching.controller';
 import { MatchingService } from './matching.service';
 import { MatchingJob } from './jobs/matching.job';
@@ -7,7 +7,7 @@ import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    AuthModule, // provides JwtGuard + RolesGuard
+    forwardRef(() => AuthModule), // provides JwtGuard + RolesGuard
   ],
   controllers: [MatchingController],
   providers: [MatchingService, MatchingJob, PrismaService],

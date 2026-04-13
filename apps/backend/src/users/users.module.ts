@@ -4,9 +4,10 @@ import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthModule } from '../auth/auth.module';
 import { SkillsService } from '../skills/skills.service';
+import { MatchingModule } from 'src/matching/matching.module';
 
 @Module({
-  imports: [AuthModule], // provides JwtGuard + JwtModule
+  imports: [AuthModule, MatchingModule], // provides JwtGuard + JwtModule
   controllers: [UsersController],
   providers: [UsersService, SkillsService, PrismaService],
   exports: [UsersService], // exported so MatchingService can call calculateStrength later

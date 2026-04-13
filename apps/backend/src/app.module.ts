@@ -9,6 +9,9 @@ import { UsersModule } from './users/users.module';
 import { OnboardingModule } from './onboarding/onboarding.module';
 import { SkillsModule } from './skills/skills.module';
 import { MatchingModule } from './matching/matching.module';
+import { SessionsModule } from './sessions/sessions.module';
+import { CreditsModule } from './credits/credits.module';
+import { ReviewsModule } from './reviews/reviews.module';
 
 @Module({
   imports: [
@@ -22,6 +25,9 @@ import { MatchingModule } from './matching/matching.module';
     OnboardingModule,
     SkillsModule,
     MatchingModule,
+    SessionsModule,
+    CreditsModule,
+    ReviewsModule,
   ],
   controllers: [AppController],
   providers: [AppService],
