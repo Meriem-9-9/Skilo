@@ -12,6 +12,7 @@ import { MatchingModule } from './matching/matching.module';
 import { SessionsModule } from './sessions/sessions.module';
 import { CreditsModule } from './credits/credits.module';
 import { ReviewsModule } from './reviews/reviews.module';
+import { UploadModule } from './upload/upload.module';
 
 @Module({
   imports: [
@@ -28,6 +29,7 @@ import { ReviewsModule } from './reviews/reviews.module';
     SessionsModule,
     CreditsModule,
     ReviewsModule,
+    UploadModule,
   ],
   controllers: [AppController],
   providers: [AppService],
