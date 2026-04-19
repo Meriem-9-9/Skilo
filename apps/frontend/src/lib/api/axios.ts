@@ -13,10 +13,16 @@ import axios, {
   InternalAxiosRequestConfig,
 } from 'axios';
 
-// ─── Référence circulaire évitée : on importe le store directement ────────────
-// Ne PAS appeler useAuthStore() ici (hooks React = contexte composant).
-// On accède au store via son getter statique .getState().
-import { useAuthStore } from '@/lib/store/auth.store';
+// ─── État global du token ──────────────────────────────────────────────────
+let globalAccessToken: string | null = null;
+
+export function setGlobalAccessToken(token: string | null) {
+  globalAccessToken = token;
+}
+
+export function getGlobalAccessToken() {
+  return globalAccessToken;
+}
 
 // ─── Instance principale ──────────────────────────────────────────────────────
 export const apiClient = axios.create({
@@ -48,7 +54,7 @@ function processQueue(error: unknown, token: string | null) {
 // ─── Intercepteur REQUEST : injecte le Bearer token ──────────────────────────
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = useAuthStore.getState().accessToken;
+    const token = getGlobalAccessToken();
     if (token && config.headers) {
       config.headers['Authorization'] = `Bearer ${token}`;
     }
@@ -72,7 +78,8 @@ apiClient.interceptors.response.use(
 
     // Évite de re-tenter le refresh sur la route /auth/refresh elle-même
     if (originalRequest.url?.includes('/auth/refresh')) {
-      useAuthStore.getState().clearAuth();
+      setGlobalAccessToken(null);
+      if (typeof window !== 'undefined') window.location.href = '/login';
       return Promise.reject(error);
     }
 
@@ -104,7 +111,10 @@ apiClient.interceptors.response.use(
       }>('/auth/refresh');
 
       const newToken = data.access_token;
-      useAuthStore.getState().setAuth(data.user, newToken);
+      setGlobalAccessToken(newToken);
+      
+      // Update context in other parts of the app dynamically if needed, 
+      // but usually the token going to the api is enough.
 
       // Rejoue toutes les requêtes en attente avec le nouveau token
       processQueue(null, newToken);
@@ -119,7 +129,8 @@ apiClient.interceptors.response.use(
     } catch (refreshError) {
       // Refresh token expiré ou révoqué → déconnexion complète
       processQueue(refreshError, null);
-      useAuthStore.getState().clearAuth();
+      setGlobalAccessToken(null);
+      if (typeof window !== 'undefined') window.location.href = '/login';
       return Promise.reject(refreshError);
     } finally {
       isRefreshing = false;

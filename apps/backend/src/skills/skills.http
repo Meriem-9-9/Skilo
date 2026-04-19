@@ -7,7 +7,7 @@
 # ══════════════════════════════════════════════════════════════════
 
 @baseUrl    = http://localhost:2006
-@token      = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMTAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDIiLCJlbWFpbCI6Im1lcmllbUBza2lsby5hcHAiLCJmaXJzdE5hbWUiOiJNZXJpZW0iLCJsYXN0TmFtZSI6Ik91YWxpIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzc2MDE1MzMwLCJleHAiOjE3NzYwMTYyMzB9.StwBK0jAA9UauOSmxVkbulNl35Sndw-2zhb8sEM_iaU
+@token      = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkMzlmMzZmMy04NTdlLTQ3MDEtOTdhMi01NzcwMWFmNjZlNGIiLCJlbWFpbCI6Inpha2FyaWFlMkBnbWFpbC5jb20iLCJmaXJzdE5hbWUiOiJ6YWthcmlhZSIsImxhc3ROYW1lIjoiYmFra2FyaSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNzc2NTUyNjA4LCJleHAiOjE3NzY1NTM1MDh9.g_qxfiUrQr25o13c_3-mrvvBOQRQQPgmWBw_j52WdFE
 @adminToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMTAwMDAwMC0wMDAwLTAwMDAtMDAwMC0wMDAwMDAwMDAwMDIiLCJlbWFpbCI6Im1lcmllbUBza2lsby5hcHAiLCJmaXJzdE5hbWUiOiJNZXJpZW0iLCJsYXN0TmFtZSI6Ik91YWxpIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzc2MDE1MzMwLCJleHAiOjE3NzYwMTYyMzB9.StwBK0jAA9UauOSmxVkbulNl35Sndw-2zhb8sEM_iaU
 @skillId    = 0031d8aa-d265-47f8-a7f1-f026456ca582
 

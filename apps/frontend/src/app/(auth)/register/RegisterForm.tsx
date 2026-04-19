@@ -7,7 +7,7 @@ import { AxiosError } from "axios";
 import Logo from "@/components/ui/Logo";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import { Alert } from "@/components/ui/Alert";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
 import { Divider } from "@/components/ui/Divider";
 import { GoogleButton } from "@/components/auth/GoogleButton";
 import { useAuth } from "@/contexts/AuthContext";
@@ -170,9 +170,11 @@ export function RegisterForm() {
           Quelques secondes pour commencer ton aventure
         </p>
 
-        <Alert variant="error" visible={!!serverError} className="mb-3">
-          {serverError}
-        </Alert>
+        {!!serverError && (
+          <Alert variant="destructive" className="mb-3">
+            <AlertDescription>{serverError}</AlertDescription>
+          </Alert>
+        )}
 
         <form
           onSubmit={handleSubmit}

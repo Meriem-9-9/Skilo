@@ -55,12 +55,12 @@ export function GoogleButton({
   return (
     <Button
       variant="google"
-      size="md"
-      fullWidth
+      size="default"
+      className="w-full"
       disabled={disabled}
       onClick={handleClick}
-      leftIcon={<GoogleIcon />}
     >
+      <GoogleIcon />
       {label}
     </Button>
   )

@@ -8,7 +8,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { useAuthStore } from '@/lib/store/auth.store';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface Options {
   /** Redirection si NON connecté (défaut : '/login') */
@@ -22,7 +22,7 @@ export function useAuthGuard({
   redirectIfAuth,
 }: Options = {}) {
   const router = useRouter();
-  const { isAuthenticated, isHydrated } = useAuthStore();
+  const { isAuthenticated, isHydrated } = useAuth();
 
   useEffect(() => {
     // Attend que l'AuthProvider ait terminé le refresh au boot

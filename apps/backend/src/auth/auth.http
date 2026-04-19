@@ -20,8 +20,8 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "meriem@skilo.app",
-  "password": "Password123!"
+  "email": "zakariae2@gmail.com",
+  "password": "Zakariae2006"
 }
 
 ### ─────────────────────────────────────────────────────────────

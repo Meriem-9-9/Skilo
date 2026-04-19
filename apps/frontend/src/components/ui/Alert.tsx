@@ -1,67 +1,76 @@
-'use client'
+import * as React from "react"
+import { cva, type VariantProps } from "class-variance-authority"
 
-import { ReactNode } from 'react'
-import { cn } from '@/lib/utils'
+import { cn } from "@/lib/utils"
 
-export type AlertVariant = 'error' | 'success' | 'warning' | 'info'
+const alertVariants = cva(
+  "group/alert relative grid w-full gap-0.5 rounded-2xl border px-4 py-3 text-left text-sm has-data-[slot=alert-action]:relative has-data-[slot=alert-action]:pr-18 has-[>svg]:grid-cols-[auto_1fr] has-[>svg]:gap-x-2.5 *:[svg]:row-span-2 *:[svg]:translate-y-0.5 *:[svg]:text-current *:[svg:not([class*='size-'])]:size-4",
+  {
+    variants: {
+      variant: {
+        default: "bg-card text-card-foreground",
+        destructive: "bg-card text-destructive *:data-[slot=alert-description]:text-destructive/90 *:[svg]:text-current",
+        warning: "bg-yellow-50 text-yellow-800 border-yellow-200 *:data-[slot=alert-description]:text-yellow-800/90",
+      },
+    },
+    defaultVariants: {
+      variant: "default",
+    },
+  }
+)
 
-interface AlertProps {
-  variant?: AlertVariant
-  children: ReactNode
-  className?: string
-  visible?: boolean
-}
-
-const variantConfig: Record<
-  AlertVariant,
-  { bg: string; border: string; text: string; icon: string }
-> = {
-  error: {
-    bg: 'bg-[rgba(220,38,38,0.06)]',
-    border: 'border-[rgba(220,38,38,0.2)]',
-    text: 'text-[#DC2626]',
-    icon: '⚠',
-  },
-  success: {
-    bg: 'bg-[rgba(22,163,74,0.06)]',
-    border: 'border-[rgba(22,163,74,0.25)]',
-    text: 'text-[#16A34A]',
-    icon: '✓',
-  },
-  warning: {
-    bg: 'bg-[rgba(212,240,0,0.1)]',
-    border: 'border-[rgba(212,240,0,0.3)]',
-    text: 'text-[#5a6500]',
-    icon: '⏱',
-  },
-  info: {
-    bg: 'bg-[rgba(109,40,217,0.06)]',
-    border: 'border-[rgba(109,40,217,0.2)]',
-    text: 'text-[#6D28D9]',
-    icon: 'ℹ',
-  },
-}
-
-export function Alert({ variant = 'error', children, className, visible = true }: AlertProps) {
-  if (!visible) return null
-
-  const cfg = variantConfig[variant]
-
+function Alert({
+  className,
+  variant,
+  ...props
+}: React.ComponentProps<"div"> & VariantProps<typeof alertVariants>) {
   return (
     <div
+      data-slot="alert"
       role="alert"
-      className={cn(
-        'flex items-start gap-2',
-        'border rounded-lg px-[14px] py-[10px]',
-        'text-[0.82rem] text-center',
-        cfg.bg,
-        cfg.border,
-        cfg.text,
-        className,
-      )}
-    >
-      <span className="flex-shrink-0 mt-[1px] font-bold">{cfg.icon}</span>
-      <span className="leading-snug">{children}</span>
-    </div>
+      className={cn(alertVariants({ variant }), className)}
+      {...props}
+    />
   )
 }
+
+function AlertTitle({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="alert-title"
+      className={cn(
+        "font-medium group-has-[>svg]/alert:col-start-2 [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function AlertDescription({
+  className,
+  ...props
+}: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="alert-description"
+      className={cn(
+        "text-sm text-balance text-muted-foreground md:text-pretty [&_a]:underline [&_a]:underline-offset-3 [&_a]:hover:text-foreground [&_p:not(:last-child)]:mb-4",
+        className
+      )}
+      {...props}
+    />
+  )
+}
+
+function AlertAction({ className, ...props }: React.ComponentProps<"div">) {
+  return (
+    <div
+      data-slot="alert-action"
+      className={cn("absolute top-2.5 right-3", className)}
+      {...props}
+    />
+  )
+}
+
+export { Alert, AlertTitle, AlertDescription, AlertAction }

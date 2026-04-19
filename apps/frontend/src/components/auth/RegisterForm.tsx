@@ -7,7 +7,7 @@ import { AxiosError } from "axios";
 import Logo from "@/components/ui/Logo";
 import { Input } from "@/components/ui/Input";
 import { PasswordInput } from "@/components/ui/PasswordInput";
-import { Alert } from "@/components/ui/Alert";
+import { Alert, AlertDescription } from "@/components/ui/Alert";
 import { Divider } from "@/components/ui/Divider";
 import { GoogleButton } from "@/components/auth/GoogleButton";
 import { useAuth } from "@/contexts/AuthContext";
@@ -126,66 +126,29 @@ export function RegisterForm() {
   };
 
   return (
-    <div
-      style={{
-        width: "50%",
-        height: "100%",
-        flexShrink: 0,
-        backgroundColor: "#ffffff",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "center",
-        alignItems: "center",
-        padding: "32px",
-        overflowY: "auto",
-      }}
-    >
-      <div style={{ width: "100%", maxWidth: "400px" }}>
+    <div className="w-1/2 h-full shrink-0 bg-white flex flex-col justify-center items-center p-8 overflow-y-auto">
+      <div className="w-full max-w-[400px]">
         {/* Logo */}
-        <div style={{ marginBottom: "18px" }}>
+        <div className="mb-4">
           <Logo variant="light" size="sm" href="/" />
         </div>
 
-        <h2
-          style={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: "1.9rem",
-            fontWeight: 900,
-            color: "#1C1033",
-            marginBottom: "4px",
-            letterSpacing: "-0.01em",
-          }}
-        >
+        <h2 className="font-display text-[1.9rem] font-black text-dark mb-1 tracking-tight">
           Créer mon compte
         </h2>
 
-        <p
-          style={{
-            color: "#8B7EA8",
-            fontSize: "0.85rem",
-            marginBottom: "22px",
-            lineHeight: 1.5,
-          }}
-        >
+        <p className="text-text-muted text-[0.85rem] mb-5 leading-relaxed">
           Quelques secondes pour commencer ton aventure
         </p>
 
-        <Alert variant="error" visible={!!serverError} className="mb-3">
-          {serverError}
-        </Alert>
+        {!!serverError && (
+          <Alert variant="destructive" className="mb-3">
+            <AlertDescription>{serverError}</AlertDescription>
+          </Alert>
+        )}
 
-        <form
-          onSubmit={handleSubmit}
-          noValidate
-          style={{ display: "flex", flexDirection: "column", gap: "12px" }}
-        >
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "1fr 1fr",
-              gap: "12px",
-            }}
-          >
+        <form onSubmit={handleSubmit} noValidate className="flex flex-col gap-3">
+          <div className="grid grid-cols-2 gap-3">
             <Input
               label="Prénom"
               id="firstName"
@@ -229,7 +192,8 @@ export function RegisterForm() {
             value={formData.password}
             onChange={handleChange}
             error={fieldErrors.password}
-            showStrength
+            // If the ui component supports showStrength uncomment this
+            // showStrength
           />
 
           <PasswordInput
@@ -245,22 +209,7 @@ export function RegisterForm() {
 
           <button
             type="submit"
-            onMouseEnter={() => setBtnHover(true)}
-            onMouseLeave={() => setBtnHover(false)}
-            style={{
-              width: "100%",
-              height: "46px",
-              backgroundColor: btnHover ? "#2d1a4f" : "#1C1033",
-              color: "#ffffff",
-              border: "none",
-              borderRadius: "10px",
-              fontSize: "0.92rem",
-              fontWeight: 700,
-              cursor: "pointer",
-              marginTop: "2px",
-              letterSpacing: "0.01em",
-              transition: "background-color 0.2s",
-            }}
+            className="w-full h-[46px] bg-dark-custom hover:bg-[#2d1a4f] text-white border-none rounded-[10px] text-[0.92rem] font-bold cursor-pointer mt-0.5 tracking-[0.01em] transition-colors"
           >
             Créer mon compte →
           </button>
@@ -269,51 +218,18 @@ export function RegisterForm() {
         <Divider label="ou continuer avec" />
         <GoogleButton />
 
-        <p
-          style={{
-            textAlign: "center",
-            marginTop: "16px",
-            fontSize: "0.83rem",
-            color: "#8B7EA8",
-          }}
-        >
+        <p className="text-center mt-4 text-[0.83rem] text-text-muted">
           Déjà un compte ?{" "}
-          <Link
-            href="/login"
-            style={{
-              color: "#6D28D9",
-              fontWeight: 600,
-              textDecoration: "none",
-            }}
-          >
+          <Link href="/login" className="text-violet font-semibold no-underline hover:underline">
             Se connecter →
           </Link>
         </p>
 
-        <p
-          style={{
-            textAlign: "center",
-            marginTop: "12px",
-            fontSize: "0.7rem",
-            color: "rgba(139,126,168,0.7)",
-            lineHeight: 1.6,
-          }}
-        >
+        <p className="text-center mt-3 text-[0.7rem] text-text-muted/70 leading-relaxed">
           En créant un compte, tu acceptes nos{" "}
-          <Link
-            href="/cgu"
-            style={{ color: "#6D28D9", textDecoration: "underline" }}
-          >
-            CGU
-          </Link>{" "}
+          <Link href="/cgu" className="text-violet underline">CGU</Link>{" "}
           et notre{" "}
-          <Link
-            href="/privacy"
-            style={{ color: "#6D28D9", textDecoration: "underline" }}
-          >
-            politique de confidentialité
-          </Link>
-          .
+          <Link href="/privacy" className="text-violet underline">politique de confidentialité</Link>.
         </p>
       </div>
     </div>

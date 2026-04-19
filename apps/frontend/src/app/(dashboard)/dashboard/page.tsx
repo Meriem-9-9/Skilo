@@ -1,137 +1,289 @@
-"use client";
+/**
+ * app/(dashboard)/dashboard/page.tsx
+ *
+ * Dashboard — shows the user's:
+ *   • Profile strength widget
+ *   • Credit balance
+ *   • Top matches (perfect first, then partial)
+ *   • Quick actions
+ *
+ * Data strategy:
+ *   - useMe()     → GET /users/me       (credits, strength, skills)
+ *   - useMatches()→ GET /matches        (paginated, default limit=6)
+ *
+ * Error handling:
+ *   - Each data source errors independently; the UI degrades gracefully.
+ *   - All HTTP errors are already logged by api-client.ts interceptors.
+ *
+ * TODO (onboarding):
+ *   - Add a <Suspense> boundary once Next 14 server components are wired in.
+ *   - Wire up the "Propose a session" CTA — needs a SessionModal component.
+ *   - Add skeleton loaders for the match cards (see DashboardSkeleton below).
+ */
 
-import { useAuthStore } from "@/lib/store/auth.store";
-import { useAuthGuard } from "@/hooks/useAuthGuard";
-import { useAuth } from "@/contexts/AuthContext"; // Add this import
+'use client';
+
+import { useState } from 'react';
+import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import { useMatches } from '@/hooks/useMatches';
+import { ProfileStrengthCard } from '@/components/dashboard/ProfileStrengthCard';
+import { CreditsCard } from '@/components/dashboard/CreditsCard';
+import { MatchCard } from '@/components/dashboard/MatchCard';
+import { DashboardSkeleton } from '@/components/dashboard/DashboardSkeleton';
+// import { EmptyMatches } from '@/components/dashboard/EmptyMatches';
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/Button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Alert, AlertDescription } from '@/components/ui/Alert';
+import {
+  Sparkles,
+  Users,
+  AlertCircle,
+  ChevronRight,
+  Trophy,
+} from 'lucide-react';
+
+import type { UserMe } from '@/types/api';
 
 export default function DashboardPage() {
-  // Protect the route and ensure user is authenticated
-  const { isAuthenticated, isHydrated } = useAuthGuard();
+  const { user, loading: userLoading, isAuthenticated } = useAuth();
+  const userMe = user as UserMe | null;
+  const userError = !userLoading && !user && !isAuthenticated; // Natively derive error
+  const [matchType, setMatchType] = useState<'all' | 'perfect' | 'partial'>('all');
 
-  // Get the connected user from the auth store
-  const { user } = useAuthStore();
+  const {
+    matches,
+    error: matchError,
+    isLoading: matchLoading,
+  } = useMatches({
+    type: matchType === 'all' ? undefined : matchType,
+    limit: 6,
+  });
 
-  // Get logout function from auth context
-  const { logout } = useAuth(); // Add this line
+  // ── Loading state ─────────────────────────────────────────────────────────
+  if (userLoading) return <DashboardSkeleton />;
 
-  // Show loading while checking authentication
-  if (!isHydrated) {
+  // ── Critical auth error (user not found at all) ───────────────────────────
+  if (userError && !user) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Chargement...</div>
+      <div className="flex min-h-[60vh] items-center justify-center p-8">
+        <Alert variant="destructive" className="max-w-md">
+          <AlertCircle className="h-4 w-4" />
+          <AlertDescription>
+            Impossible de charger votre profil. Veuillez{' '}
+            <Link href="/login" className="underline font-medium">
+              vous reconnecter
+            </Link>
+            .
+          </AlertDescription>
+        </Alert>
       </div>
     );
   }
 
-  // This shouldn't happen due to useAuthGuard, but just in case
-  if (!isAuthenticated || !user) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-lg">Non authentifié</div>
-      </div>
-    );
-  }
-
-  // Handle logout with loading state
-  const handleLogout = async () => {
-    try {
-      await logout();
-    } catch (error) {
-      console.error("Logout failed:", error);
-      // You could show a toast notification here
-    }
-  };
+  const perfectCount = matches?.data.filter((m) => m.type === 'perfect').length ?? 0;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      {/* Header with logout button */}
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">
-          Bienvenue, {user.firstName} {user.lastName}!
-        </h1>
-        <button
-          onClick={handleLogout}
-          className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
-        >
-          Se déconnecter
-        </button>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* User Info Card */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Informations du profil</h2>
-          <div className="space-y-2">
-            <p>
-              <span className="font-medium">Email:</span> {user.email}
-            </p>
-            <p>
-              <span className="font-medium">Ville:</span>{" "}
-              {user.city || "Non renseignée"}
-            </p>
-            <p>
-              <span className="font-medium">Score du profil:</span>{" "}
-              {user.profileScore}
-            </p>
-            <p>
-              <span className="font-medium">Solde de crédits:</span>{" "}
-              {user.creditBalance}
-            </p>
+    <div className="min-h-screen bg-[#F8F7FF]">
+      {/* ── Top bar ────────────────────────────────────────────────────────── */}
+      <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/80 backdrop-blur-sm">
+        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-8">
+          <div className="flex items-center gap-3">
+            <div
+              className="flex h-8 w-8 items-center justify-center rounded-lg"
+              style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+            >
+              <Sparkles className="h-4 w-4 text-white" />
+            </div>
+            <span className="text-lg font-semibold tracking-tight text-slate-800">
+              Skilo
+            </span>
           </div>
-        </div>
 
-        {/* Onboarding Status */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">État d&apos;onboarding</h2>
-          <div className="space-y-2">
-            <p>
-              <span className="font-medium">Statut:</span>
-              {user.isOnboarded ? (
-                <span className="text-green-600 ml-2">✓ Terminé</span>
+          <nav className="hidden items-center gap-6 sm:flex">
+            <Link
+              href="/dashboard"
+              className="text-sm font-medium text-indigo-600"
+            >
+              Tableau de bord
+            </Link>
+            <Link
+              href="/matches"
+              className="text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
+            >
+              Mes matchs
+            </Link>
+            <Link
+              href="/sessions"
+              className="text-sm font-medium text-slate-500 hover:text-slate-800 transition-colors"
+            >
+              Sessions
+            </Link>
+          </nav>
+
+          <Link href="/profile">
+            <div className="flex items-center gap-2.5 rounded-full border border-slate-200 px-3 py-1.5 hover:border-indigo-300 transition-colors">
+              {user?.avatarUrl ? (
+                <img
+                  src={user.avatarUrl}
+                  alt={user.firstName}
+                  className="h-6 w-6 rounded-full object-cover"
+                />
               ) : (
-                <span className="text-orange-600 ml-2">
-                  En cours (Étape 1)
-                </span>
+                <div className="flex h-6 w-6 items-center justify-center rounded-full bg-indigo-100 text-xs font-semibold text-indigo-700">
+                  {user?.firstName?.[0]}
+                </div>
               )}
-            </p>
-            {!user.isOnboarded && (
-              <a
-                href={`/onboarding/step-1`}
-                className="inline-block mt-2 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                Continuer l&apos;onboarding
-              </a>
-            )}
-          </div>
+              <span className="text-sm font-medium text-slate-700">
+                {user?.firstName}
+              </span>
+            </div>
+          </Link>
         </div>
+      </header>
 
-        {/* Avatar */}
-        <div className="bg-white p-6 rounded-lg shadow">
-          <h2 className="text-xl font-semibold mb-4">Avatar</h2>
-          {user.avatarUrl ? (
-            <img
-              src={user.avatarUrl}
-              alt="Avatar"
-              className="w-24 h-24 rounded-full mx-auto"
-            />
-          ) : (
-            <div className="w-24 h-24 rounded-full bg-gray-300 flex items-center justify-center mx-auto">
-              <span className="text-2xl font-bold text-gray-600">
-                {user.firstName[0]}
-                {user.lastName[0]}
+      {/* ── Main content ───────────────────────────────────────────────────── */}
+      <main className="mx-auto max-w-7xl px-4 py-8 sm:px-8">
+        {/* Welcome row */}
+        <div className="mb-8 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900">
+              Bonjour, {user?.firstName} 👋
+            </h1>
+            <p className="mt-1 text-sm text-slate-500">
+              {new Date().toLocaleDateString('fr-FR', {
+                weekday: 'long',
+                day: 'numeric',
+                month: 'long',
+              })}
+            </p>
+          </div>
+
+          {perfectCount > 0 && (
+            <div className="flex items-center gap-2 rounded-full border border-amber-200 bg-amber-50 px-4 py-2">
+              <Trophy className="h-4 w-4 text-amber-600" />
+              <span className="text-sm font-medium text-amber-700">
+                {perfectCount} match{perfectCount > 1 ? 's' : ''} parfait
+                {perfectCount > 1 ? 's' : ''} !
               </span>
             </div>
           )}
         </div>
-      </div>
 
-      {/* User Object Debug (remove in production) */}
-      <div className="mt-8 p-4 bg-gray-100 rounded-lg">
-        <h3 className="font-semibold mb-2">Debug - User Object:</h3>
-        <pre className="text-sm overflow-auto">
-          {JSON.stringify(user, null, 2)}
-        </pre>
-      </div>
+        {/* Stats row */}
+        <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <CreditsCard
+            balance={userMe?.creditBalance ?? 0}
+            reserved={userMe?.creditReserved ?? 0}
+          />
+          <ProfileStrengthCard strength={userMe?.profileStrength} />
+
+          {/* Sessions completed */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
+              Sessions
+            </p>
+            <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">
+              {userMe?.sessionsCompleted ?? 0}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">complétées</p>
+          </div>
+
+          {/* Rating */}
+          <div className="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+            <p className="text-xs font-medium uppercase tracking-widest text-slate-400">
+              Note moyenne
+            </p>
+            <p className="mt-2 text-3xl font-bold tabular-nums text-slate-900">
+              {userMe?.avgRating ? userMe.avgRating.toFixed(1) : '—'}
+            </p>
+            <p className="mt-1 text-xs text-slate-500">
+              {userMe?.avgRating ? '⭐ sur 5' : 'Pas encore noté'}
+            </p>
+          </div>
+        </div>
+
+        {/* Matches section */}
+        <section>
+          <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <Users className="h-5 w-5 text-indigo-600" />
+              <h2 className="text-lg font-semibold text-slate-900">
+                Mes matchs
+              </h2>
+              {matches?.meta.total != null && (
+                <Badge variant="secondary" className="rounded-full px-2.5">
+                  {matches.meta.total}
+                </Badge>
+              )}
+            </div>
+
+            <Link
+              href="/matches"
+              className="flex items-center gap-1 text-sm font-medium text-indigo-600 hover:text-indigo-500 transition-colors"
+            >
+              Voir tous <ChevronRight className="h-3.5 w-3.5" />
+            </Link>
+          </div>
+
+          {/* Filter tabs */}
+          <Tabs
+            value={matchType}
+            onValueChange={(v) => setMatchType(v as typeof matchType)}
+            className="mb-5"
+          >
+            <TabsList className="rounded-xl bg-slate-100">
+              <TabsTrigger value="all" className="rounded-lg text-sm">
+                Tous
+              </TabsTrigger>
+              <TabsTrigger value="perfect" className="rounded-lg text-sm">
+                Parfaits ✨
+              </TabsTrigger>
+              <TabsTrigger value="partial" className="rounded-lg text-sm">
+                Partiels
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Match error banner (non-blocking) */}
+            {matchError && (
+              <Alert variant="destructive" className="mt-4">
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  Impossible de charger les matchs. Réessayez dans quelques
+                  instants.
+                </AlertDescription>
+              </Alert>
+            )}
+
+            <TabsContent value={matchType} className="mt-0">
+              {matchLoading ? (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+                  {Array.from({ length: 6 }).map((_, i) => (
+                    <div
+                      key={i}
+                      className="h-52 animate-pulse rounded-2xl bg-slate-100"
+                    />
+                  ))}
+                </div>
+              ) : !matches?.data.length ? (
+                <div></div>
+                // <EmptyMatches type={matchType} />
+              ) : (
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 mt-4">
+                  {matches.data.map((match) => (
+                    <MatchCard
+                      key={match.id}
+                      match={match}
+                      currentUserId={user!.id}
+                    />
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </section>
+      </main>
     </div>
   );
 }

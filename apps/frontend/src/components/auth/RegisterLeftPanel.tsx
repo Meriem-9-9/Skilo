@@ -11,111 +11,75 @@ const PERKS = [
 
 export function RegisterLeftPanel() {
   return (
-    <div style={{
-      width: '50%', height: '100%',
-      backgroundColor: '#6D28D9',
-      padding: '40px 48px',
-      display: 'flex', flexDirection: 'column', justifyContent: 'center',
-      position: 'relative', overflow: 'hidden', flexShrink: 0,
-    }}>
+    <div className="w-1/2 h-full bg-violet-custom px-12 py-10 flex flex-col justify-center relative overflow-hidden shrink-0">
       {/* Orbe sombre top-right */}
-      <div style={{
-        position: 'absolute', width: '420px', height: '420px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(28,16,51,0.55) 0%, transparent 70%)',
-        top: -120, right: -120, pointerEvents: 'none',
-      }} />
+      <div 
+        className="absolute w-[420px] h-[420px] rounded-full -top-[120px] -right-[120px] pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(28,16,51,0.55) 0%, transparent 70%)' }}
+      />
       {/* Orbe citron bottom-left */}
-      <div style={{
-        position: 'absolute', width: '300px', height: '300px', borderRadius: '50%',
-        background: 'radial-gradient(circle, rgba(212,240,0,0.15) 0%, transparent 70%)',
-        bottom: -60, left: -40, pointerEvents: 'none',
-      }} />
+      <div 
+        className="absolute w-[300px] h-[300px] rounded-full -bottom-[60px] -left-[40px] pointer-events-none"
+        style={{ background: 'radial-gradient(circle, rgba(212,240,0,0.15) 0%, transparent 70%)' }}
+      />
 
-      <div style={{ position: 'relative', zIndex: 1 }}>
+      <div className="relative z-10">
         {/* Logo */}
-        <div style={{ marginBottom: '36px' }}>
+        <div className="mb-9">
           <Logo variant="dark" size="md" href="/" />
         </div>
 
         {/* Titre */}
-        <h1 style={{
-          fontFamily: "'Barlow Condensed', sans-serif",
-          fontSize: 'clamp(1.9rem, 3vw, 2.6rem)',
-          fontWeight: 900, lineHeight: 1.1,
-          color: '#ffffff', marginBottom: '14px', letterSpacing: '-0.01em',
-        }}>
+        <h1 className="font-display text-[clamp(1.9rem,3vw,2.6rem)] font-black leading-[1.1] text-white mb-3.5 tracking-tight">
           Rejoins des milliers<br />
           de personnes qui ont<br />
           trouvé leur{' '}
-          <span style={{ color: '#D4F000' }}>connexion idéale</span>
+          <span className="text-citron-custom text-citron">connexion idéale</span>
         </h1>
 
-        <p style={{
-          color: 'rgba(255,255,255,0.6)', fontSize: '0.88rem',
-          lineHeight: 1.6, marginBottom: '28px', maxWidth: '340px',
-        }}>
+        <p className="text-white/60 text-[0.88rem] leading-relaxed mb-7 max-w-[340px]">
           Crée ton profil en 2 minutes et découvre tes premiers matchs dès aujourd'hui.
         </p>
 
         {/* Carte profil mock */}
-        <div style={{
-          backgroundColor: 'rgba(255,255,255,0.1)',
-          border: '1px solid rgba(255,255,255,0.18)',
-          borderRadius: '16px', padding: '18px 20px', marginBottom: '28px',
-          backdropFilter: 'blur(16px)',
-          boxShadow: '0 8px 32px rgba(0,0,0,0.2)',
-        }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-            <div style={{
-              width: '42px', height: '42px', borderRadius: '50%',
-              backgroundColor: '#7C3AED',
-              border: '2px solid rgba(255,255,255,0.25)',
-              display: 'flex', alignItems: 'center', justifyContent: 'center',
-              fontSize: '0.82rem', fontWeight: 800, color: '#ffffff', flexShrink: 0,
-            }}>SA</div>
+        <div className="bg-white/10 border border-white/20 rounded-2xl px-5 py-[18px] mb-7 backdrop-blur-md shadow-[0_8px_32px_rgba(0,0,0,0.2)]">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-[42px] h-[42px] rounded-full bg-[#7C3AED] border-2 border-white/25 flex items-center justify-center text-[0.82rem] font-bold text-white shrink-0">
+              SA
+            </div>
             <div>
-              <p style={{ color: '#ffffff', fontWeight: 700, fontSize: '0.9rem', margin: 0 }}>
+              <p className="text-white font-bold text-[0.9rem] m-0">
                 Sarah, 28 ans
               </p>
-              <p style={{ color: 'rgba(255,255,255,0.5)', fontSize: '0.74rem', margin: '2px 0 0' }}>
+              <p className="text-white/50 text-[0.74rem] mt-[2px]">
                 Paris · Créatrice de contenu
               </p>
             </div>
           </div>
-          <div style={{ marginBottom: '10px' }}>
-            <span style={{
-              backgroundColor: '#D4F000', color: '#1C1033',
-              fontSize: '0.7rem', fontWeight: 800,
-              padding: '4px 11px', borderRadius: '999px',
-            }}>✦ Match parfait · 97%</span>
+          <div className="mb-2.5">
+            <span className="bg-citron-custom text-dark text-[0.7rem] font-bold px-[11px] py-1 rounded-full">
+              ✦ Match parfait · 97%
+            </span>
           </div>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px' }}>
+          <div className="flex flex-wrap gap-1.5">
             {TAGS.map((tag) => (
-              <span key={tag} style={{
-                backgroundColor: 'rgba(255,255,255,0.12)',
-                color: '#ffffff', fontSize: '0.73rem', fontWeight: 500,
-                padding: '4px 11px', borderRadius: '999px',
-                border: '1px solid rgba(255,255,255,0.18)',
-              }}>{tag}</span>
+              <span key={tag} className="bg-white/10 text-white text-[0.73rem] font-medium px-[11px] py-1 rounded-full border border-white/20">
+                {tag}
+              </span>
             ))}
           </div>
         </div>
 
         {/* Perks */}
-        <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '11px' }}>
+        <ul className="list-none p-0 m-0 flex flex-col gap-[11px]">
           {PERKS.map((perk) => (
-            <li key={perk} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <div style={{
-                width: '24px', height: '24px', borderRadius: '50%',
-                backgroundColor: 'rgba(212,240,0,0.18)',
-                border: '1px solid rgba(212,240,0,0.35)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
-              }}>
+            <li key={perk} className="flex items-center gap-3">
+              <div className="w-6 h-6 rounded-full bg-[rgba(212,240,0,0.18)] border border-[rgba(212,240,0,0.35)] flex items-center justify-center shrink-0">
                 <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
                   <path d="M1 4L4 7L10 1" stroke="#D4F000" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"/>
                 </svg>
               </div>
-              <span style={{ color: 'rgba(255,255,255,0.8)', fontSize: '0.84rem' }}>{perk}</span>
+              <span className="text-white/80 text-[0.84rem]">{perk}</span>
             </li>
           ))}
         </ul>

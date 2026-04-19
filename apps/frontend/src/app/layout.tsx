@@ -1,7 +1,11 @@
 import type { Metadata } from "next";
-import { Syne, DM_Sans } from "next/font/google";
+import { Syne, DM_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { cn } from "@/lib/utils";
+
+const jetbrainsMono = JetBrains_Mono({subsets:['latin'],variable:'--font-mono'});
+
 
 // ── Fonts ─────────────────────────────────────────────────────────────────
 
@@ -52,7 +56,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="fr" className={`${syne.variable} ${dmSans.variable}`}>
+    <html lang="fr" className={cn(syne.variable, dmSans.variable, "font-mono", jetbrainsMono.variable)}>
       <body className="font-body antialiased">
         <AuthProvider>{children}</AuthProvider>
       </body>
