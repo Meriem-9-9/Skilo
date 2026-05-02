@@ -5,6 +5,7 @@ import { uploadApi } from '@/lib/api';
 import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
+import { Camera } from 'lucide-react';
 
 const ALLOWED_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 const MAX_FILE_MB   = 5;
@@ -73,7 +74,7 @@ export function ProfileDetailsStep({ city, bio, avatarUrl, onCityChange, onBioCh
           {preview ? (
             <img src={preview} alt="Avatar preview" className="w-full h-full object-cover" />
           ) : (
-            <span className="text-3xl text-muted-foreground">📷</span>
+            <Camera className="w-8 h-8 text-muted-foreground" />
           )}
           {uploading && (
             <div className="absolute inset-0 bg-black/40 flex items-center justify-center">

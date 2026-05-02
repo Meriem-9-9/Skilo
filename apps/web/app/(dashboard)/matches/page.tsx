@@ -4,6 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { matchesApi, Match, SkillCategory, SkillLevel, MatchType } from '@/lib/api';
 
+import { ProposeSessionModal } from '@/components/matches/propose-modal';
+
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const CATEGORIES: { value: SkillCategory; label: string; emoji: string }[] = [
@@ -24,9 +26,9 @@ const SORT_OPTIONS = [
 
 // ─── Match card ───────────────────────────────────────────────────────────────
 
-function MatchCard({ match }: { match: Match }) {
+function MatchCard({ match, onPropose }: { match: Match; onPropose: (m: Match) => void }) {
   const u = match.otherUser;
-  const initials = [u.firstName[0], u.lastName[0]].join('').toUpperCase();
+  const initials = [u?.firstName?.[0] || '?', u?.lastName?.[0] || ''].join('').toUpperCase();
   const isPerfect = match.type === 'perfect';
 
   const compatColor =
@@ -38,23 +40,19 @@ function MatchCard({ match }: { match: Match }) {
     <div className="bg-card border border-border rounded-xl p-5 hover:border-primary/30 hover:shadow-sm transition-all">
       <div className="flex items-start gap-4">
         {/* Avatar */}
-        <Link href={`/dashboard/users/${u.id}`}>
-          <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shrink-0 border-2 border-primary/20 hover:border-primary/50 transition-colors">
-            {u.avatarUrl
-              ? <img src={u.avatarUrl} alt={u.firstName} className="w-full h-full object-cover" />
-              : <span className="text-lg font-bold text-primary">{initials}</span>
-            }
-          </div>
-        </Link>
+        <div className="w-14 h-14 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden shrink-0 border-2 border-primary/20 transition-colors">
+          {u.avatarUrl
+            ? <img src={u.avatarUrl} alt={u.firstName} className="w-full h-full object-cover" />
+            : <span className="text-lg font-bold text-primary">{initials}</span>
+          }
+        </div>
 
         {/* Info */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 flex-wrap">
-            <Link href={`/dashboard/users/${u.id}`}>
-              <h3 className="text-base font-semibold hover:text-primary transition-colors">
-                {u.firstName} {u.lastName}
-              </h3>
-            </Link>
+            <h3 className="text-base font-semibold">
+              {u.firstName} {u.lastName}
+            </h3>
             {u.hasBadgeFiable && (
               <span className="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded-full font-medium">🏅 Fiable</span>
             )}
@@ -95,16 +93,16 @@ function MatchCard({ match }: { match: Match }) {
             {match.score}%
           </span>
           <span className="text-xs text-muted-foreground">{match.label}</span>
-          <Link
-            href={`/dashboard/users/${u.id}`}
-            className={`mt-1 text-xs px-3 py-1.5 rounded-lg font-medium transition-colors ${
+          <button
+            onClick={() => onPropose(match)}
+            className={`mt-1 text-xs px-4 py-2 rounded-lg font-medium transition-all transform active:scale-95 ${
               isPerfect
-                ? 'bg-primary text-primary-foreground hover:bg-primary/90'
+                ? 'bg-primary text-primary-foreground hover:bg-primary/90 shadow-md shadow-primary/10'
                 : 'bg-secondary text-secondary-foreground hover:bg-secondary/80'
             }`}
           >
             {isPerfect ? 'Proposer' : 'Écrire'}
-          </Link>
+          </button>
         </div>
       </div>
     </div>
@@ -119,6 +117,10 @@ export default function MatchesPage() {
   const [error,     setError]     = useState<string | null>(null);
   const [page,      setPage]      = useState(1);
   const [total,     setTotal]     = useState(0);
+
+  // Modal state
+  const [selectedMatch, setSelectedMatch] = useState<Match | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   // Filters
   const [typeFilter,     setTypeFilter]     = useState<MatchType | ''>('');
@@ -148,6 +150,11 @@ export default function MatchesPage() {
 
   // Reset page when filters change
   useEffect(() => { setPage(1); }, [typeFilter, categoryFilter, sort]);
+
+  const handlePropose = (match: Match) => {
+    setSelectedMatch(match);
+    setIsModalOpen(true);
+  };
 
   const perfectMatches  = matches.filter((m) => m.type === 'perfect');
   const partialMatches  = matches.filter((m) => m.type === 'partial');
@@ -256,7 +263,7 @@ export default function MatchesPage() {
                 <h2 className="text-sm font-semibold">⇄ Matchs parfaits</h2>
                 <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{perfectMatches.length}</span>
               </div>
-              {perfectMatches.map((m) => <MatchCard key={m.id} match={m} />)}
+              {perfectMatches.map((m) => <MatchCard key={m.id} match={m} onPropose={handlePropose} />)}
             </div>
           )}
 
@@ -267,7 +274,7 @@ export default function MatchesPage() {
                 <h2 className="text-sm font-semibold">Matchs partiels</h2>
                 <span className="text-xs text-muted-foreground bg-muted px-2 py-0.5 rounded-full">{partialMatches.length}</span>
               </div>
-              {partialMatches.map((m) => <MatchCard key={m.id} match={m} />)}
+              {partialMatches.map((m) => <MatchCard key={m.id} match={m} onPropose={handlePropose} />)}
             </div>
           )}
 
@@ -293,6 +300,15 @@ export default function MatchesPage() {
           )}
         </div>
       )}
+
+      {/* Proposal Modal */}
+      <ProposeSessionModal
+        match={selectedMatch}
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={fetchMatches}
+      />
     </div>
   );
 }
+

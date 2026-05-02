@@ -7,13 +7,32 @@ import { useAuth } from '@/contexts/auth-context';
 import { creditsApi, notificationsApi, CreditBalance, Notification } from '@/lib/api';
 import { SidebarProvider } from '@/components/ui/sidebar';
 
+import { 
+  LayoutDashboard, 
+  ArrowRightLeft, 
+  Calendar, 
+  User, 
+  Coins, 
+  Bell, 
+  LogOut, 
+  CheckCircle, 
+  XCircle, 
+  Clock, 
+  Star, 
+  Award, 
+  Undo,
+  MessageSquare,
+  TrendingUp,
+  Inbox
+} from 'lucide-react';
+
 // ─── Nav items ─────────────────────────────────────────────────────────────────
 
 const NAV = [
-  { href: '/dashboard',         label: 'Overview',         icon: '▦'  },
-  { href: '/matches', label: 'Matches',          icon: '⇄'  },
-  { href: '/sessions',label: 'Sessions',         icon: '📅' },
-  { href: '/profile', label: 'My Profile',       icon: '👤' },
+  { href: '/dashboard', label: 'Overview',   icon: <LayoutDashboard className="w-5 h-5" /> },
+  { href: '/matches',   label: 'Matches',    icon: <ArrowRightLeft className="w-5 h-5" /> },
+  { href: '/sessions',  label: 'Sessions',   icon: <Calendar className="w-5 h-5" /> },
+  { href: '/profile',   label: 'My Profile', icon: <User className="w-5 h-5" /> },
 ];
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
@@ -92,12 +111,12 @@ function CreditsPill() {
   return (
     <Link
       href="/dashboard/credits"
-      className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-50 border border-amber-200 hover:bg-amber-100 transition-colors"
+      className="flex items-center gap-1.5 px-4 py-2 rounded-full bg-amber-500/10 border border-amber-500/20 hover:bg-amber-500/20 transition-all text-amber-600 dark:text-amber-500"
     >
-      <span className="text-sm">🪙</span>
-      <span className="text-sm font-semibold text-amber-700">{balance.available}</span>
+      <Coins className="w-4 h-4" />
+      <span className="text-sm font-semibold">{balance.available}</span>
       {balance.reserved > 0 && (
-        <span className="text-xs text-amber-500">+{balance.reserved} réservés</span>
+        <span className="text-xs opacity-75">+{balance.reserved} réservés</span>
       )}
     </Link>
   );
@@ -133,38 +152,38 @@ function NotificationsBell() {
     setUnread(0);
   }
 
-  const ICONS: Record<string, string> = {
-    new_perfect_match:  '🎯',
-    match_upgraded:     '⬆️',
-    session_proposed:   '📩',
-    session_accepted:   '✅',
-    session_declined:   '❌',
-    session_reminder:   '⏰',
-    session_completed:  '🎉',
-    review_received:    '⭐',
-    badge_earned:       '🏅',
-    credits_earned:     '🪙',
-    credits_refunded:   '↩️',
+  const ICONS: Record<string, React.ReactNode> = {
+    new_perfect_match:  <Award className="w-4 h-4 text-primary" />,
+    match_upgraded:     <TrendingUp className="w-4 h-4 text-green-500" />,
+    session_proposed:   <MessageSquare className="w-4 h-4 text-blue-500" />,
+    session_accepted:   <CheckCircle className="w-4 h-4 text-green-500" />,
+    session_declined:   <XCircle className="w-4 h-4 text-destructive" />,
+    session_reminder:   <Clock className="w-4 h-4 text-amber-500" />,
+    session_completed:  <CheckCircle className="w-4 h-4 text-green-500" />,
+    review_received:    <Star className="w-4 h-4 text-amber-400 fill-amber-400" />,
+    badge_earned:       <Award className="w-4 h-4 text-purple-500" />,
+    credits_earned:     <Coins className="w-4 h-4 text-amber-500" />,
+    credits_refunded:   <Undo className="w-4 h-4 text-amber-500" />,
   };
 
   return (
     <div className="relative" ref={ref}>
       <button
         onClick={() => setOpen((o) => !o)}
-        className="relative w-9 h-9 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
+        className="relative w-10 h-10 flex items-center justify-center rounded-full hover:bg-muted transition-colors"
         aria-label="Notifications"
       >
-        <span className="text-lg">🔔</span>
+        <Bell className="w-5 h-5" />
         {unread > 0 && (
-          <span className="absolute top-0.5 right-0.5 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
+          <span className="absolute top-1 right-1 w-4 h-4 bg-primary text-primary-foreground text-[10px] font-bold rounded-full flex items-center justify-center">
             {unread > 9 ? '9+' : unread}
           </span>
         )}
       </button>
 
       {open && (
-        <div className="absolute right-0 top-11 w-80 bg-card border border-border rounded-xl shadow-lg z-50 overflow-hidden">
-          <div className="flex items-center justify-between px-4 py-3 border-b border-border">
+        <div className="absolute right-0 top-12 w-80 bg-card border border-border rounded-2xl shadow-xl z-50 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-3 border-b border-border bg-muted/30">
             <span className="text-sm font-semibold">Notifications</span>
             {unread > 0 && (
               <button onClick={markAll} className="text-xs text-primary hover:underline">
@@ -182,8 +201,10 @@ function NotificationsBell() {
                   key={n.id}
                   className={`px-4 py-3 text-sm ${n.isRead ? '' : 'bg-primary/5'}`}
                 >
-                  <div className="flex items-start gap-2">
-                    <span className="text-base shrink-0 mt-0.5">{ICONS[n.type] ?? '📬'}</span>
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 p-1.5 bg-background rounded-full border border-border">
+                      {ICONS[n.type] ?? <Inbox className="w-4 h-4 text-muted-foreground" />}
+                    </div>
                     <div className="min-w-0">
                       <p className={`leading-snug ${n.isRead ? 'text-muted-foreground' : 'text-foreground font-medium'}`}>
                         {String((n.payload as Record<string, unknown>)?.body ?? n.type)}
@@ -253,16 +274,16 @@ function AvatarMenu() {
             <Link
               href="/profile"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors"
+              className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-muted transition-colors"
             >
-              <span>👤</span> Mon profil
+              <User className="w-4 h-4 text-muted-foreground" /> Mon profil
             </Link>
             <Link
               href="/credits"
               onClick={() => setOpen(false)}
-              className="flex items-center gap-2 px-4 py-2 text-sm hover:bg-muted transition-colors"
+              className="flex items-center gap-3 px-4 py-2 text-sm hover:bg-muted transition-colors"
             >
-              <span>🪙</span> Mes crédits
+              <Coins className="w-4 h-4 text-muted-foreground" /> Mes crédits
             </Link>
           </div>
 
@@ -270,9 +291,9 @@ function AvatarMenu() {
           <div className="border-t border-border py-1">
             <button
               onClick={handleLogout}
-              className="w-full flex items-center gap-2 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
+              className="w-full flex items-center gap-3 px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
             >
-              <span>↩</span> Se déconnecter
+              <LogOut className="w-4 h-4" /> Se déconnecter
             </button>
           </div>
         </div>
@@ -289,10 +310,14 @@ function Header({ onMenuClick }: { onMenuClick: () => void }) {
       {/* Mobile hamburger */}
       <button
         onClick={onMenuClick}
-        className="lg:hidden w-9 h-9 flex items-center justify-center rounded-lg hover:bg-muted transition-colors"
+        className="lg:hidden w-10 h-10 flex items-center justify-center rounded-xl hover:bg-muted transition-colors"
         aria-label="Open menu"
       >
-        <span className="text-lg">☰</span>
+        <div className="flex flex-col gap-1.5 items-center justify-center w-5">
+          <div className="w-full h-0.5 bg-foreground rounded-full"></div>
+          <div className="w-full h-0.5 bg-foreground rounded-full"></div>
+          <div className="w-full h-0.5 bg-foreground rounded-full"></div>
+        </div>
       </button>
 
       {/* Spacer on desktop */}

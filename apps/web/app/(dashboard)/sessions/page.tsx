@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/contexts/auth-context';
 import { sessionsApi, Session, SessionStatus } from '@/lib/api';
+import { Coins, Link as LinkIcon, Check, X, Calendar, Archive, ArrowLeft, ArrowRight, FolderClosed } from 'lucide-react';
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -23,7 +24,7 @@ function formatDate(iso: string) {
 }
 
 function Avatar({ user, size = 10 }: { user: { firstName: string; lastName: string; avatarUrl?: string }; size?: number }) {
-  const initials = [user.firstName[0], user.lastName[0]].join('').toUpperCase();
+  const initials = [user.firstName?.[0] || '?', user.lastName?.[0] || ''].join('').toUpperCase();
   const sizeClass = `w-${size} h-${size}`;
   return (
     <div className={`${sizeClass} rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center overflow-hidden shrink-0`}>
@@ -47,8 +48,9 @@ function SessionCard({
   onCancel: (id: string) => void;
   onConfirm: (id: string, happened: boolean) => void;
 }) {
-  const isInitiator = session.proposedBy.id === currentUserId;
+  const isInitiator = session.proposedBy?.id === currentUserId;
   const other = isInitiator ? session.recipient : session.proposedBy;
+  if (!other) return null; // Defensive check for corrupted/incomplete data
   const cfg = STATUS_CONFIG[session.status];
 
   const now = new Date();
@@ -58,7 +60,7 @@ function SessionCard({
   const canIConfirm = isConfirmable && (isInitiator ? !session.confirmedByA : !session.confirmedByB);
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5 space-y-4">
+    <div className="bg-card border border-border rounded-2xl p-6 space-y-5 shadow-sm hover:shadow-md transition-shadow">
       {/* Header */}
       <div className="flex items-center gap-4">
         <Avatar user={other} size={12} />
@@ -79,8 +81,8 @@ function SessionCard({
           </p>
         </div>
         {session.creditsUsed > 0 && (
-          <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full shrink-0">
-            🪙 {session.creditsUsed} crédit{session.creditsUsed > 1 ? 's' : ''}
+          <span className="flex items-center gap-1.5 text-xs font-semibold text-amber-600 bg-amber-500/10 px-2.5 py-1 rounded-full shrink-0">
+            <Coins className="w-3.5 h-3.5" /> {session.creditsUsed} crédit{session.creditsUsed > 1 ? 's' : ''}
           </span>
         )}
       </div>
@@ -104,54 +106,60 @@ function SessionCard({
       )}
 
       {/* Meeting link */}
-      {session.meetingLink && session.status === 'confirmed' && (
-        <a
-          href={session.meetingLink}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1.5 text-sm text-primary hover:underline"
-        >
-          🔗 Rejoindre la réunion
-        </a>
+      {session.meetingLink && (session.status === 'confirmed' || session.status === 'pending') && (
+        <div className="flex flex-col gap-1.5 bg-muted/50 p-3 rounded-xl border border-border/50">
+          <span className="text-[10px] font-bold text-muted-foreground uppercase tracking-wider">Lien de la réunion</span>
+          <a
+            href={session.meetingLink}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-sm text-primary hover:text-primary/80 transition-colors font-medium"
+          >
+            <LinkIcon className="w-4 h-4" />
+            <span className="truncate">{session.meetingLink}</span>
+          </a>
+        </div>
       )}
 
       {/* Actions */}
-      <div className="flex flex-wrap gap-2 pt-1 border-t border-border">
+      <div className="flex flex-wrap gap-3 pt-2 border-t border-border mt-4">
         {/* Recipient actions on pending */}
         {!isInitiator && session.status === 'pending' && (
           <>
             <button
               onClick={() => onAccept(session.id)}
-              className="flex-1 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold hover:bg-primary/90 transition-colors shadow-sm"
             >
-              ✓ Accepter
+              <Check className="w-4 h-4" /> Accepter
             </button>
             <button
               onClick={() => onDecline(session.id)}
-              className="flex-1 py-2 rounded-lg border border-border text-sm hover:bg-muted transition-colors"
+              className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-border text-sm font-semibold hover:bg-muted transition-colors"
             >
-              ✗ Refuser
+              <X className="w-4 h-4" /> Refuser
             </button>
           </>
         )}
 
         {/* Confirm completion */}
         {canIConfirm && (
-          <>
-            <p className="w-full text-xs text-muted-foreground">La session a-t-elle eu lieu ?</p>
-            <button
-              onClick={() => onConfirm(session.id, true)}
-              className="flex-1 py-2 rounded-lg bg-green-500 text-white text-sm font-medium hover:bg-green-600 transition-colors"
-            >
-              ✓ Oui, elle a eu lieu
-            </button>
-            <button
-              onClick={() => onConfirm(session.id, false)}
-              className="flex-1 py-2 rounded-lg border border-red-200 text-red-600 text-sm hover:bg-red-50 transition-colors"
-            >
-              ✗ Non, annuler
-            </button>
-          </>
+          <div className="w-full space-y-3">
+            <p className="w-full text-xs font-medium text-muted-foreground text-center">La session a-t-elle eu lieu ?</p>
+            <div className="flex gap-3">
+              <button
+                onClick={() => onConfirm(session.id, true)}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl bg-green-500 text-white text-sm font-semibold hover:bg-green-600 transition-colors shadow-sm"
+              >
+                <Check className="w-4 h-4" /> Oui, confirmée
+              </button>
+              <button
+                onClick={() => onConfirm(session.id, false)}
+                className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-red-200 text-red-600 bg-red-50/50 text-sm font-semibold hover:bg-red-50 transition-colors"
+              >
+                <X className="w-4 h-4" /> Non, annuler
+              </button>
+            </div>
+          </div>
         )}
 
         {/* Cancel (if cancellable) */}
@@ -250,14 +258,15 @@ export default function SessionsPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 bg-muted p-1 rounded-xl w-fit">
+      <div className="flex gap-1 bg-muted/50 p-1 rounded-2xl w-fit border border-border/50">
         {(['upcoming', 'past'] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-4 py-1.5 rounded-lg text-sm font-medium transition-colors ${tab === t ? 'bg-card shadow-sm' : 'text-muted-foreground hover:text-foreground'}`}
+            className={`flex items-center gap-2 px-5 py-2 rounded-xl text-sm font-semibold transition-all ${tab === t ? 'bg-background shadow-sm text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
           >
-            {t === 'upcoming' ? '📅 À venir' : '📂 Passées'}
+            {t === 'upcoming' ? <Calendar className="w-4 h-4" /> : <Archive className="w-4 h-4" />}
+            {t === 'upcoming' ? 'À venir' : 'Passées'}
           </button>
         ))}
       </div>
@@ -273,13 +282,15 @@ export default function SessionsPage() {
           <button onClick={fetchSessions} className="text-sm text-primary hover:underline">Réessayer</button>
         </div>
       ) : sessions.length === 0 ? (
-        <div className="text-center py-16 bg-card border border-border rounded-xl">
-          <p className="text-4xl mb-3">{tab === 'upcoming' ? '📅' : '📂'}</p>
-          <p className="font-semibold mb-1">
+        <div className="flex flex-col items-center justify-center py-20 bg-card border border-border rounded-2xl shadow-sm">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+            {tab === 'upcoming' ? <Calendar className="w-8 h-8 text-muted-foreground/50" /> : <FolderClosed className="w-8 h-8 text-muted-foreground/50" />}
+          </div>
+          <p className="font-semibold text-lg mb-1">
             {tab === 'upcoming' ? 'Aucune session à venir' : 'Aucune session passée'}
           </p>
-          <p className="text-muted-foreground text-sm">
-            {tab === 'upcoming' ? 'Proposez une session à l\'un de vos matchs !' : 'Vos sessions passées apparaîtront ici.'}
+          <p className="text-muted-foreground text-sm max-w-sm text-center">
+            {tab === 'upcoming' ? 'Proposez une session à l\'un de vos matchs pour commencer à échanger !' : 'Vos sessions passées apparaîtront ici.'}
           </p>
         </div>
       ) : (
@@ -299,21 +310,21 @@ export default function SessionsPage() {
           </div>
 
           {totalPages > 1 && (
-            <div className="flex items-center justify-center gap-2 pt-2">
+            <div className="flex items-center justify-center gap-3 pt-6 pb-2">
               <button
                 onClick={() => setPage((p) => Math.max(1, p - 1))}
                 disabled={page === 1}
-                className="px-3 py-1.5 text-sm rounded-lg border border-border disabled:opacity-40 hover:bg-muted transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-xl border border-border disabled:opacity-40 hover:bg-muted transition-colors bg-card"
               >
-                ← Précédent
+                <ArrowLeft className="w-4 h-4" /> Précédent
               </button>
-              <span className="text-sm text-muted-foreground">{page} / {totalPages}</span>
+              <span className="text-sm font-medium text-muted-foreground bg-muted/50 px-3 py-1 rounded-lg">{page} / {totalPages}</span>
               <button
                 onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
                 disabled={page === totalPages}
-                className="px-3 py-1.5 text-sm rounded-lg border border-border disabled:opacity-40 hover:bg-muted transition-colors"
+                className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium rounded-xl border border-border disabled:opacity-40 hover:bg-muted transition-colors bg-card"
               >
-                Suivant →
+                Suivant <ArrowRight className="w-4 h-4" />
               </button>
             </div>
           )}

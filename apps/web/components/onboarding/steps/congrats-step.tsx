@@ -3,6 +3,7 @@
 import { User } from '@/lib/api';
 import { Button } from '@/components/ui/button';
 import { SelectedSkill } from './skill-selector-step';
+import { PartyPopper, MapPin, GraduationCap, BookOpen, Coins, ArrowRight } from 'lucide-react';
 
 export function CongratsStep({ user, offeredSkills, wantedSkills, onGoToDashboard }: {
   user: User | null;
@@ -15,7 +16,9 @@ export function CongratsStep({ user, offeredSkills, wantedSkills, onGoToDashboar
   return (
     <div className="space-y-6 text-center">
       <div className="space-y-2">
-        <div className="text-4xl">🎉</div>
+        <div className="flex justify-center mb-4 text-primary">
+          <PartyPopper className="w-12 h-12" />
+        </div>
         <h2 className="text-2xl font-bold">You're all set!</h2>
         <p className="text-muted-foreground text-sm">
           Here's how others will see your profile. Start exploring matches!
@@ -36,7 +39,9 @@ export function CongratsStep({ user, offeredSkills, wantedSkills, onGoToDashboar
               {user?.firstName} {user?.lastName}
             </p>
             {user?.city && (
-              <p className="text-sm text-muted-foreground">📍 {user.city}</p>
+              <p className="text-sm text-muted-foreground flex items-center gap-1 mt-0.5">
+                <MapPin className="w-3.5 h-3.5" /> {user.city}
+              </p>
             )}
           </div>
         </div>
@@ -47,8 +52,8 @@ export function CongratsStep({ user, offeredSkills, wantedSkills, onGoToDashboar
 
         <div className="border-t border-border pt-3 space-y-3">
           <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
-              🎓 Can teach
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5">
+              <GraduationCap className="w-4 h-4" /> Can teach
             </p>
             <div className="flex flex-wrap gap-1.5">
               {offeredSkills.map((s) => (
@@ -60,8 +65,8 @@ export function CongratsStep({ user, offeredSkills, wantedSkills, onGoToDashboar
           </div>
 
           <div>
-            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-1.5">
-              📚 Wants to learn
+            <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 flex items-center gap-1.5 mt-1">
+              <BookOpen className="w-4 h-4" /> Wants to learn
             </p>
             <div className="flex flex-wrap gap-1.5">
               {wantedSkills.map((s) => (
@@ -73,16 +78,16 @@ export function CongratsStep({ user, offeredSkills, wantedSkills, onGoToDashboar
           </div>
         </div>
 
-        <div className="border-t border-border pt-3 flex items-center gap-2">
-          <span className="text-xs bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-medium">
-            🪙 2 welcome credits
+        <div className="border-t border-border pt-3 flex items-center gap-2 mt-2">
+          <span className="flex items-center gap-1.5 text-xs bg-amber-500/10 text-amber-700 px-3 py-1 rounded-full font-bold border border-amber-500/20">
+            <Coins className="w-3.5 h-3.5" /> 2 welcome credits
           </span>
-          <span className="text-xs text-muted-foreground">ready to spend</span>
+          <span className="text-xs font-medium text-muted-foreground">ready to spend</span>
         </div>
       </div>
 
-      <Button className="w-full" onClick={onGoToDashboard}>
-        Explore matches →
+      <Button className="w-full flex items-center justify-center gap-2" size="lg" onClick={onGoToDashboard}>
+        Explore matches <ArrowRight className="w-4 h-4" />
       </Button>
     </div>
   );

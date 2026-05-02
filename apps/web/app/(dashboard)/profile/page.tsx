@@ -6,6 +6,11 @@ import {
   usersApi, skillsApi, uploadApi,
   User, UserSkill, SkillCatalogItem, SkillLevel, SkillType, SkillCategory,
 } from '@/lib/api';
+import { 
+  Monitor, Globe, Palette, Briefcase, Trophy, ChefHat, Sparkles, 
+  Camera, CheckCircle2, AlertCircle, XCircle, X, GraduationCap, 
+  BookOpen, BarChart3, Star, Coins, Medal 
+} from 'lucide-react';
 
 // ─── Constants ────────────────────────────────────────────────────────────────
 
@@ -21,14 +26,14 @@ const LEVEL_COLORS: Record<SkillLevel, string> = {
   advanced:     'bg-purple-100 text-purple-700',
 };
 
-const CATEGORIES: { value: SkillCategory; label: string; emoji: string }[] = [
-  { value: 'tech',      label: 'Tech',      emoji: '💻' },
-  { value: 'languages', label: 'Langues',   emoji: '🌍' },
-  { value: 'arts',      label: 'Arts',      emoji: '🎨' },
-  { value: 'business',  label: 'Business',  emoji: '📊' },
-  { value: 'sport',     label: 'Sport',     emoji: '⚽' },
-  { value: 'cooking',   label: 'Cuisine',   emoji: '🍳' },
-  { value: 'other',     label: 'Autre',     emoji: '✨' },
+const CATEGORIES: { value: SkillCategory; label: string; icon: React.ReactNode }[] = [
+  { value: 'tech',      label: 'Tech',      icon: <Monitor className="w-4 h-4" /> },
+  { value: 'languages', label: 'Langues',   icon: <Globe className="w-4 h-4" /> },
+  { value: 'arts',      label: 'Arts',      icon: <Palette className="w-4 h-4" /> },
+  { value: 'business',  label: 'Business',  icon: <Briefcase className="w-4 h-4" /> },
+  { value: 'sport',     label: 'Sport',     icon: <Trophy className="w-4 h-4" /> },
+  { value: 'cooking',   label: 'Cuisine',   icon: <ChefHat className="w-4 h-4" /> },
+  { value: 'other',     label: 'Autre',     icon: <Sparkles className="w-4 h-4" /> },
 ];
 
 const BIO_MAX = 280;
@@ -39,16 +44,29 @@ const MAX_FILE_MB = 5;
 // ─── Profile strength ─────────────────────────────────────────────────────────
 
 function StrengthBar({ score }: { score: number }) {
-  const color = score >= 71 ? 'bg-green-500' : score >= 41 ? 'bg-amber-500' : 'bg-red-500';
-  const label = score >= 71 ? 'Complet ✅' : score >= 41 ? 'Partiel 🟡' : 'Incomplet 🔴';
+  const color = score >= 71 ? 'bg-green-500' : score >= 41 ? 'bg-amber-500' : 'bg-destructive';
+  
+  let Icon = XCircle;
+  let labelText = 'Incomplet';
+  let textColor = 'text-destructive';
+  if (score >= 71) {
+    Icon = CheckCircle2;
+    labelText = 'Complet';
+    textColor = 'text-green-600';
+  } else if (score >= 41) {
+    Icon = AlertCircle;
+    labelText = 'Partiel';
+    textColor = 'text-amber-600';
+  }
 
   return (
     <div>
       <div className="flex items-center justify-between mb-1.5 text-xs">
-        <span className="font-medium">Force du profil</span>
-        <span className={`font-semibold ${score >= 71 ? 'text-green-600' : score >= 41 ? 'text-amber-600' : 'text-red-600'}`}>
-          {score}/100 · {label}
-        </span>
+        <span className="font-semibold text-muted-foreground uppercase tracking-wider">Force du profil</span>
+        <div className={`flex items-center gap-1.5 font-semibold ${textColor}`}>
+          <span>{score}/100 · {labelText}</span>
+          <Icon className="w-4 h-4" />
+        </div>
       </div>
       <div className="w-full bg-muted rounded-full h-2">
         <div className={`h-2 rounded-full transition-all duration-500 ${color}`} style={{ width: `${score}%` }} />
@@ -120,7 +138,7 @@ function AvatarUpload({
           </div>
         )}
         <div className="absolute bottom-0 right-0 w-7 h-7 bg-primary rounded-full flex items-center justify-center border-2 border-background">
-          <span className="text-xs text-primary-foreground">📷</span>
+          <Camera className="w-3.5 h-3.5 text-primary-foreground" />
         </div>
       </button>
       <input ref={fileRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={handleFile} />
@@ -172,9 +190,11 @@ function AddSkillPanel({
       />
 
       {selected ? (
-        <div className="flex items-center justify-between p-2 rounded-lg bg-primary/10 border border-primary/20">
-          <span className="text-sm font-medium">{selected.name}</span>
-          <button type="button" onClick={() => setSelected(null)} className="text-muted-foreground hover:text-foreground text-lg">×</button>
+        <div className="flex items-center justify-between p-3 rounded-xl bg-primary/5 border border-primary/20">
+          <span className="text-sm font-semibold">{selected.name}</span>
+          <button type="button" onClick={() => setSelected(null)} className="text-muted-foreground hover:text-foreground p-1 rounded-md hover:bg-muted/50 transition-colors">
+            <X className="w-4 h-4" />
+          </button>
         </div>
       ) : (
         <div className="max-h-40 overflow-y-auto space-y-1">
@@ -184,11 +204,11 @@ function AddSkillPanel({
               key={r.id}
               type="button"
               onClick={() => { setSelected(r); setQuery(r.name); }}
-              className="w-full text-left text-sm px-3 py-2 rounded-lg hover:bg-muted transition-colors flex items-center gap-2"
+              className="w-full text-left text-sm px-3 py-2.5 rounded-xl hover:bg-muted transition-colors flex items-center gap-3 font-medium"
             >
-              <span className="text-xs text-muted-foreground">
-                {CATEGORIES.find((c) => c.value === r.category)?.emoji}
-              </span>
+              <div className="text-muted-foreground bg-background p-1.5 rounded-md border border-border/50">
+                {CATEGORIES.find((c) => c.value === r.category)?.icon}
+              </div>
               {r.name}
             </button>
           ))}
@@ -244,7 +264,7 @@ function AddSkillPanel({
 // ─── Skills section ───────────────────────────────────────────────────────────
 
 function SkillsSection({
-  title, type, skills, onRemove, onLevelChange, onAdd,
+  title, type, skills, onRemove, onLevelChange, onAdd, allSkills,
 }: {
   title: string;
   type: SkillType;
@@ -252,9 +272,11 @@ function SkillsSection({
   onRemove: (id: string) => void;
   onLevelChange: (id: string, level: SkillLevel) => void;
   onAdd: (skill: SkillCatalogItem, level: SkillLevel) => void;
+  allSkills: UserSkill[];
 }) {
   const [showAdd, setShowAdd] = useState(false);
-  const existingIds = skills.map((s) => s.skillCatalogId);
+  // Pass all skill IDs to prevent adding a skill as both offered and wanted
+  const allSkillIds = allSkills.map((s) => s.skillCatalogId);
 
   return (
     <div className="space-y-3">
@@ -271,11 +293,11 @@ function SkillsSection({
         {skills.map((s) => (
           <div key={s.id} className="flex items-center gap-3 p-3 rounded-lg border border-border bg-card">
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium">{s.skillCatalog.name}</p>
-              <p className="text-xs text-muted-foreground capitalize">
-                {CATEGORIES.find((c) => c.value === s.skillCatalog.category)?.emoji}{' '}
-                {s.skillCatalog.category}
-              </p>
+              <p className="text-sm font-semibold">{s.skillCatalog.name}</p>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground capitalize mt-0.5">
+                {CATEGORIES.find((c) => c.value === s.skillCatalog.category)?.icon}
+                <span>{s.skillCatalog.category}</span>
+              </div>
             </div>
             <select
               value={s.level}
@@ -287,17 +309,17 @@ function SkillsSection({
             <button
               type="button"
               onClick={() => onRemove(s.id)}
-              className="text-muted-foreground hover:text-destructive transition-colors text-xl leading-none ml-1"
+              className="text-muted-foreground hover:text-destructive transition-colors p-1.5 rounded-md hover:bg-destructive/10 ml-1"
               title="Supprimer"
             >
-              ×
+              <X className="w-4 h-4" />
             </button>
           </div>
         ))}
       </div>
 
       {showAdd
-        ? <AddSkillPanel type={type} existingSkillIds={existingIds} onAdd={onAdd} onClose={() => setShowAdd(false)} />
+        ? <AddSkillPanel type={type} existingSkillIds={allSkillIds} onAdd={onAdd} onClose={() => setShowAdd(false)} />
         : skills.length < MAX_SKILLS && (
           <button
             type="button"
@@ -364,8 +386,8 @@ export default function ProfilePage() {
 
   async function handleAddSkill(type: SkillType, skill: SkillCatalogItem, level: SkillLevel) {
     try {
-      const newSkill = await usersApi.addSkill({ skillId: skill.id, type, level });
-      setSkills((prev) => [...prev, newSkill]);
+      const res = await usersApi.addSkill({ skillId: skill.id, type, level });
+      setSkills((prev) => [...prev, res.skill]);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur lors de l\'ajout.');
     }
@@ -382,8 +404,8 @@ export default function ProfilePage() {
 
   async function handleLevelChange(userSkillId: string, level: SkillLevel) {
     try {
-      const updated = await usersApi.updateSkillLevel(userSkillId, level);
-      setSkills((prev) => prev.map((s) => s.id === userSkillId ? { ...s, level: updated.level } : s));
+      const res = await usersApi.updateSkillLevel(userSkillId, level);
+      setSkills((prev) => prev.map((s) => s.id === userSkillId ? { ...s, level: res.skill.level } : s));
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Erreur lors de la mise à jour.');
     }
@@ -425,13 +447,15 @@ export default function ProfilePage() {
       </div>
 
       {/* Strength bar */}
-      <div className="bg-card border border-border rounded-xl p-5">
+      <div className="bg-card border border-border rounded-2xl p-6 shadow-sm">
         <StrengthBar score={localScore} />
       </div>
 
       {/* Info card */}
-      <section className="bg-card border border-border rounded-xl p-5 space-y-5">
-        <h2 className="text-base font-semibold">Informations générales</h2>
+      <section className="bg-card border border-border rounded-2xl p-6 space-y-6 shadow-sm">
+        <h2 className="text-lg font-bold flex items-center gap-2">
+          <User className="w-5 h-5 text-primary" /> Informations générales
+        </h2>
 
         {/* Avatar */}
         <AvatarUpload
@@ -497,15 +521,17 @@ export default function ProfilePage() {
           type="button"
           onClick={handleSaveInfo}
           disabled={saving}
-          className="w-full py-2.5 rounded-xl bg-primary text-primary-foreground text-sm font-semibold disabled:opacity-60 transition-opacity"
+          className="w-full py-3 rounded-xl bg-primary text-primary-foreground text-sm font-bold disabled:opacity-60 transition-opacity shadow-sm hover:bg-primary/90"
         >
-          {saving ? 'Sauvegarde…' : 'Sauvegarder'}
+          {saving ? 'Sauvegarde…' : 'Sauvegarder les informations'}
         </button>
       </section>
 
       {/* Skills offered */}
-      <section className="bg-card border border-border rounded-xl p-5">
-        <h2 className="text-base font-semibold mb-4">🎓 Compétences à enseigner</h2>
+      <section className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+        <h2 className="text-lg font-bold mb-5 flex items-center gap-2">
+          <GraduationCap className="w-5 h-5 text-primary" /> Compétences à enseigner
+        </h2>
         <SkillsSection
           title="Ce que vous pouvez apprendre aux autres"
           type="offered"
@@ -513,12 +539,15 @@ export default function ProfilePage() {
           onRemove={handleRemoveSkill}
           onLevelChange={handleLevelChange}
           onAdd={(skill, level) => handleAddSkill('offered', skill, level)}
+          allSkills={skills}
         />
       </section>
 
       {/* Skills wanted */}
-      <section className="bg-card border border-border rounded-xl p-5">
-        <h2 className="text-base font-semibold mb-4">📚 Compétences à apprendre</h2>
+      <section className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+        <h2 className="text-lg font-bold mb-5 flex items-center gap-2">
+          <BookOpen className="w-5 h-5 text-primary" /> Compétences à apprendre
+        </h2>
         <SkillsSection
           title="Ce que vous cherchez à maîtriser"
           type="wanted"
@@ -526,32 +555,41 @@ export default function ProfilePage() {
           onRemove={handleRemoveSkill}
           onLevelChange={handleLevelChange}
           onAdd={(skill, level) => handleAddSkill('wanted', skill, level)}
+          allSkills={skills}
         />
       </section>
 
       {/* Stats readonly */}
-      <section className="bg-card border border-border rounded-xl p-5">
-        <h2 className="text-base font-semibold mb-4">📊 Statistiques</h2>
-        <div className="grid grid-cols-2 sm:grid-cols-3 gap-4 text-center">
-          <div>
-            <p className="text-2xl font-bold text-primary">{profile.sessionsCompleted}</p>
-            <p className="text-xs text-muted-foreground">Sessions réalisées</p>
+      <section className="bg-card border border-border rounded-2xl p-6 shadow-sm">
+        <h2 className="text-lg font-bold mb-5 flex items-center gap-2">
+          <BarChart3 className="w-5 h-5 text-primary" /> Statistiques
+        </h2>
+        <div className="grid grid-cols-2 sm:grid-cols-3 gap-6 text-center">
+          <div className="bg-muted/30 p-4 rounded-2xl border border-border/50">
+            <p className="text-3xl font-black text-primary">{profile.sessionsCompleted}</p>
+            <p className="text-xs font-semibold text-muted-foreground mt-1 uppercase tracking-wide">Sessions</p>
           </div>
-          <div>
-            <p className="text-2xl font-bold text-yellow-500">
-              {profile.avgRating ? Number(profile.avgRating).toFixed(1) : '—'}
-            </p>
-            <p className="text-xs text-muted-foreground">Note moyenne</p>
+          <div className="bg-muted/30 p-4 rounded-2xl border border-border/50">
+            <div className="flex items-center justify-center gap-1">
+              <p className="text-3xl font-black text-amber-500">
+                {profile.avgRating ? Number(profile.avgRating).toFixed(1) : '—'}
+              </p>
+              <Star className="w-5 h-5 text-amber-500 fill-amber-500 -mt-1" />
+            </div>
+            <p className="text-xs font-semibold text-muted-foreground mt-1 uppercase tracking-wide">Note moy.</p>
           </div>
-          <div>
-            <p className="text-2xl font-bold text-amber-500">{profile.creditBalance}</p>
-            <p className="text-xs text-muted-foreground">Crédits disponibles</p>
+          <div className="bg-muted/30 p-4 rounded-2xl border border-border/50">
+            <div className="flex items-center justify-center gap-1.5">
+              <p className="text-3xl font-black text-emerald-500">{profile.creditBalance}</p>
+              <Coins className="w-5 h-5 text-emerald-500 -mt-1" />
+            </div>
+            <p className="text-xs font-semibold text-muted-foreground mt-1 uppercase tracking-wide">Crédits</p>
           </div>
         </div>
         {profile.hasBadgeFiable && (
-          <div className="mt-4 flex items-center gap-2 justify-center text-sm">
-            <span>🏅</span>
-            <span className="font-medium text-amber-700">Badge Fiable obtenu</span>
+          <div className="mt-6 flex items-center gap-2 justify-center text-sm bg-amber-500/10 text-amber-700 py-3 rounded-xl font-bold border border-amber-500/20">
+            <Medal className="w-5 h-5 text-amber-600" />
+            <span>Badge Fiable obtenu</span>
           </div>
         )}
       </section>

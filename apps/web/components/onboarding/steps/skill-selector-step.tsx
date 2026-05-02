@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { skillsApi, SkillCatalogItem, SkillLevel, SkillCategory } from '@/lib/api';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Monitor, Globe, Palette, Briefcase, Trophy, ChefHat, Sparkles, X, AlertTriangle } from 'lucide-react';
 
 export interface SelectedSkill {
   skillId: string;
@@ -17,14 +18,14 @@ const LEVELS: { value: SkillLevel; label: string }[] = [
   { value: 'advanced',     label: 'Advanced' },
 ];
 
-const CATEGORIES: { value: SkillCategory; label: string; emoji: string }[] = [
-  { value: 'tech',      label: 'Tech',      emoji: '💻' },
-  { value: 'languages', label: 'Languages', emoji: '🌍' },
-  { value: 'arts',      label: 'Arts',      emoji: '🎨' },
-  { value: 'business',  label: 'Business',  emoji: '📊' },
-  { value: 'sport',     label: 'Sport',     emoji: '⚽' },
-  { value: 'cooking',   label: 'Cooking',   emoji: '🍳' },
-  { value: 'other',     label: 'Other',     emoji: '✨' },
+const CATEGORIES: { value: SkillCategory; label: string; icon: React.ReactNode }[] = [
+  { value: 'tech',      label: 'Tech',      icon: <Monitor className="w-3.5 h-3.5" /> },
+  { value: 'languages', label: 'Languages', icon: <Globe className="w-3.5 h-3.5" /> },
+  { value: 'arts',      label: 'Arts',      icon: <Palette className="w-3.5 h-3.5" /> },
+  { value: 'business',  label: 'Business',  icon: <Briefcase className="w-3.5 h-3.5" /> },
+  { value: 'sport',     label: 'Sport',     icon: <Trophy className="w-3.5 h-3.5" /> },
+  { value: 'cooking',   label: 'Cooking',   icon: <ChefHat className="w-3.5 h-3.5" /> },
+  { value: 'other',     label: 'Other',     icon: <Sparkles className="w-3.5 h-3.5" /> },
 ];
 
 const MAX_SKILLS = 5;
@@ -73,9 +74,11 @@ function SelectedSkillRow({ skill, onLevelChange, onRemove }: {
       <button
         type="button"
         onClick={onRemove}
-        className="text-muted-foreground hover:text-destructive transition-colors text-lg leading-none"
+        className="text-muted-foreground hover:text-destructive transition-colors p-1 rounded-md hover:bg-destructive/10"
         aria-label={`Remove ${skill.name}`}
-      >×</button>
+      >
+        <X className="w-4 h-4" />
+      </button>
     </div>
   );
 }
@@ -134,8 +137,8 @@ export function SkillSelectorStep({ title, subtitle, selectedSkills, onToggle, o
         {CATEGORIES.map((cat) => (
           <button key={cat.value} type="button"
             onClick={() => setActiveCategory(cat.value === activeCategory ? null : cat.value)}
-            className={`px-3 py-1 rounded-full text-xs font-medium border transition-colors ${activeCategory === cat.value ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border hover:border-primary'}`}>
-            {cat.emoji} {cat.label}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium border transition-colors ${activeCategory === cat.value ? 'bg-primary text-primary-foreground border-primary' : 'bg-background border-border hover:border-primary'}`}>
+            {cat.icon} {cat.label}
           </button>
         ))}
       </div>
@@ -166,7 +169,9 @@ export function SkillSelectorStep({ title, subtitle, selectedSkills, onToggle, o
         </div>
 
         {disabledSkillIds.length > 0 && (
-          <p className="text-xs text-amber-600 mt-2">⚠ Greyed-out skills are already in your other list.</p>
+          <p className="text-xs text-amber-600 mt-2 flex items-center gap-1.5 font-medium">
+            <AlertTriangle className="w-3.5 h-3.5" /> Greyed-out skills are already in your other list.
+          </p>
         )}
       </div>
 
