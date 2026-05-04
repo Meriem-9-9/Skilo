@@ -5,7 +5,7 @@ import { usePathname } from 'next/navigation';
 import { LayoutDashboard, ArrowRightLeft, Calendar, User, MessageCircle } from 'lucide-react';
 
 const NAV = [
-  { href: '/dashboard', label: 'Vue d\'ensemble', icon: <LayoutDashboard className="w-5 h-5" /> },
+  { href: '/dashboard', label: 'Dashboard', icon: <LayoutDashboard className="w-5 h-5" /> },
   { href: '/matches',   label: 'Matches',    icon: <ArrowRightLeft className="w-5 h-5" /> },
   { href: '/sessions',  label: 'Sessions',   icon: <Calendar className="w-5 h-5" /> },
   { href: '/messages',  label: 'Messages',   icon: <MessageCircle className="w-5 h-5" /> },

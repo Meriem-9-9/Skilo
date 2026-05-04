@@ -5,6 +5,8 @@ import {
   MinLength,
   MaxLength,
   Matches,
+  IsOptional,
+  IsUUID,
 } from 'class-validator';
 import { Transform } from 'class-transformer';
 
@@ -34,4 +36,7 @@ export class RegisterDto {
   @MaxLength(50)
   @Transform(({ value }: { value: string }) => value?.trim())
   lastName: string;
+  @IsOptional()
+  @IsUUID()
+  referredById?: string;
 }

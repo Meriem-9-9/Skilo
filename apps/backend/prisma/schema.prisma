@@ -98,6 +98,7 @@ enum CreditType {
   session_reserved
   session_released
   session_confirmed
+  referral_bonus
 
   @@map("credit_type_enum")
 }
@@ -165,11 +166,14 @@ model User {
   failedLoginAttempts Int       @default(0)
   lockedUntil         DateTime? @db.Timestamptz() /// NULL = pas bloqué. Protection brute force (FC-01-B)
   lastLoginAt         DateTime? @db.Timestamptz()
-//  onboardingStep      Int       @default(1) /// 1=compétences offertes, 2=recherchées, 3=infos perso
+  referredById        String?   @db.Uuid
+  referralBonusAwarded Boolean   @default(false)
   createdAt           DateTime  @default(now()) @db.Timestamptz()
   updatedAt           DateTime  @updatedAt @db.Timestamptz()
 
   // Relations
+  referredBy         User?     @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals           User[]    @relation("UserReferrals")
   skills             UserSkill[]
   matchesAsA         Match[]             @relation("MatchUserA")
   matchesAsB         Match[]             @relation("MatchUserB")

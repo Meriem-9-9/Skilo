@@ -16,6 +16,7 @@ const TYPE_CONFIG: Record<string, { label: string; color: string; sign: string }
   session_reserved: { label: 'Réservé',           color: 'text-amber-600',  sign: '−' },
   session_released: { label: 'Libéré',            color: 'text-blue-600',   sign: '+' },
   session_confirmed:{ label: 'Confirmé',          color: 'text-green-600',  sign: '+' },
+  referral_bonus:   { label: 'Invitation',        color: 'text-green-600',  sign: '+' },
 };
 
 function formatDate(iso: string) {

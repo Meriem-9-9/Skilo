@@ -2,6 +2,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -16,6 +17,7 @@ import { JwtPayload } from './types/jwt-payload.type';
 import { User } from 'generated/prisma/client';
 import { Role } from './enums/role.enum';
 import { MatchingService } from 'src/matching/matching.service';
+import { CreditsService } from 'src/credits/credits.service';
 
 const BCRYPT_COST = 12; // spec FC-01-A
 const MAX_ATTEMPTS = 5;
@@ -23,11 +25,14 @@ const BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     private readonly prisma: PrismaService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly matchingService: MatchingService,
+    private readonly creditsService: CreditsService,
   ) {}
 
   // ─── Register ─────────────────────────────────────────────────────────────
@@ -51,9 +56,37 @@ export class AuthService {
         passwordHash,
         firstName: dto.firstName,
         lastName: dto.lastName,
+        referredById: dto.referredById ?? null,
         // creditBalance defaults to 2 in schema (welcome bonus — FC-06-A)
       },
     });
+
+    // ─── Award Referral Bonus to the Referrer ───
+    if (dto.referredById) {
+      this.logger.log(`Awarding referral bonus for new user ${user.id} to referrer ${dto.referredById}`);
+      const referrer = await this.prisma.user.findUnique({
+        where: { id: dto.referredById },
+        select: { id: true, firstName: true },
+      });
+
+      if (referrer) {
+        await this.creditsService.credit(
+          referrer.id,
+          5,
+          'none', // No session linked
+          'referral_bonus',
+          `Bonus d'invitation pour l'inscription de ${user.firstName}`
+        );
+        // Mark the NEW user as having awarded their bonus
+        await this.prisma.user.update({
+          where: { id: user.id },
+          data: { referralBonusAwarded: true },
+        });
+        this.logger.log(`Referral bonus of 5 credits awarded to ${referrer.id}`);
+      } else {
+        this.logger.warn(`Referrer ${dto.referredById} not found`);
+      }
+    }
 
     return this.buildResponse(user);
   }

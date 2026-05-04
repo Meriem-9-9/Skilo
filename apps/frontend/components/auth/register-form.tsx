@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
 import { Button } from '@/components/ui/button';
@@ -30,15 +30,17 @@ export function RegisterForm() {
 
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const ref = searchParams.get('ref');
 
   // Client-side validation before hitting the API
   function validate(): string | null {
-    if (firstName.trim().length < 2) return 'First name must be at least 2 characters.';
-    if (lastName.trim().length < 2) return 'Last name must be at least 2 characters.';
-    if (password.length < 8) return 'Password must be at least 8 characters.';
-    if (!/[A-Z]/.test(password)) return 'Password must contain at least one uppercase letter.';
-    if (!/[0-9]/.test(password)) return 'Password must contain at least one number.';
-    if (password !== confirmPassword) return 'Passwords do not match.';
+    if (firstName.trim().length < 2) return 'Le prénom doit contenir au moins 2 caractères.';
+    if (lastName.trim().length < 2) return 'Le nom doit contenir au moins 2 caractères.';
+    if (password.length < 8) return 'Le mot de passe doit contenir au moins 8 caractères.';
+    if (!/[A-Z]/.test(password)) return 'Le mot de passe doit contenir au moins une majuscule.';
+    if (!/[0-9]/.test(password)) return 'Le mot de passe doit contenir au moins un chiffre.';
+    if (password !== confirmPassword) return 'Les mots de passe ne correspondent pas.';
     return null;
   }
 
@@ -54,9 +56,15 @@ export function RegisterForm() {
 
     setIsLoading(true);
     try {
-      const data = await authApi.register({ firstName, lastName, email, password });
+      const data = await authApi.register({ 
+        firstName, 
+        lastName, 
+        email, 
+        password,
+        referredById: ref || undefined
+      });
       login(data.access_token, data.user);
-      // ✅ FIX: New users go to onboarding, not dashboard
+      //New users go to onboarding, not dashboard
       router.push('/onboarding');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Network error. Please try again.');
@@ -68,9 +76,9 @@ export function RegisterForm() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center">Create your account</CardTitle>
+        <CardTitle className="text-2xl font-bold text-center">Créer votre compte</CardTitle>
         <CardDescription className="text-center">
-          Join skilo — teach what you know, learn what you want
+          Rejoignez skilo — enseignez ce que vous savez, apprenez ce que vous voulez
         </CardDescription>
       </CardHeader>
 
@@ -80,10 +88,10 @@ export function RegisterForm() {
 
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="register-firstName">First name</Label>
+              <Label htmlFor="register-firstName">Prénom</Label>
               <Input
                 id="register-firstName"
-                placeholder="John"
+                placeholder="Jean"
                 autoComplete="given-name"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
@@ -93,10 +101,10 @@ export function RegisterForm() {
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="register-lastName">Last name</Label>
+              <Label htmlFor="register-lastName">Nom</Label>
               <Input
                 id="register-lastName"
-                placeholder="Doe"
+                placeholder="Dupont"
                 autoComplete="family-name"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
@@ -112,7 +120,7 @@ export function RegisterForm() {
             <Input
               id="register-email"
               type="email"
-              placeholder="you@example.com"
+              placeholder="votre@email.com"
               autoComplete="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -121,12 +129,12 @@ export function RegisterForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="register-password">Password</Label>
+            <Label htmlFor="register-password">Mot de passe</Label>
             <Input
               id="register-password"
               type="password"
               autoComplete="new-password"
-              placeholder="Min. 8 characters, 1 uppercase, 1 number"
+              placeholder="Min. 8 car., 1 majuscule, 1 chiffre"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               required
@@ -134,12 +142,12 @@ export function RegisterForm() {
           </div>
 
           <div className="space-y-2">
-            <Label htmlFor="register-confirm">Confirm password</Label>
+            <Label htmlFor="register-confirm">Confirmer le mot de passe</Label>
             <Input
               id="register-confirm"
               type="password"
               autoComplete="new-password"
-              placeholder="Repeat your password"
+              placeholder="Répétez votre mot de passe"
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
               required
@@ -149,12 +157,12 @@ export function RegisterForm() {
 
         <CardFooter className="flex flex-col space-y-4 mt-2">
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Creating account…' : 'Sign Up'}
+            {isLoading ? 'Création du compte…' : 'S\'inscrire'}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
-            Already have an account?{' '}
+            Vous avez déjà un compte ?{' '}
             <Link href="/login" className="font-medium text-primary hover:underline">
-              Sign in
+              Se connecter
             </Link>
           </p>
         </CardFooter>

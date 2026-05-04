@@ -47,8 +47,12 @@ export class SessionsService {
       await this.creditsService.reserve(initiatorId, creditsNeeded, 'pending');
     }
 
-    const offeredSkill = await this.prisma.skillCatalog.findUnique({ where: { id: dto.offeredSkillId } });
-    const wantedSkill = await this.prisma.skillCatalog.findUnique({ where: { id: dto.wantedSkillId } });
+    const offeredSkill = dto.offeredSkillId 
+      ? await this.prisma.skillCatalog.findUnique({ where: { id: dto.offeredSkillId } })
+      : null;
+    const wantedSkill = dto.wantedSkillId 
+      ? await this.prisma.skillCatalog.findUnique({ where: { id: dto.wantedSkillId } })
+      : null;
 
     const session = await this.prisma.session.create({
       data: {

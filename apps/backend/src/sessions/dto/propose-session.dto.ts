@@ -20,11 +20,13 @@ export class ProposeSessionDto {
   })
   duration: number;
 
+  @IsOptional()
   @IsUUID('4')
-  offeredSkillId: string; // what the initiator teaches
+  offeredSkillId?: string; // what the initiator teaches
 
+  @IsOptional()
   @IsUUID('4')
-  wantedSkillId: string; // what the initiator learns
+  wantedSkillId?: string; // what the initiator learns
 
   @IsOptional()
   @IsString()

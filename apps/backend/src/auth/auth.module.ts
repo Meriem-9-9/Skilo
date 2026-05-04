@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { JwtGuard } from './guards/jwt.guard';
 import { BlacklistCleanupTask } from './tasks/blacklist-cleanup.task';
 import { MatchingModule } from 'src/matching/matching.module';
+import { CreditsModule } from 'src/credits/credits.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { MatchingModule } from 'src/matching/matching.module';
       }),
     }),
     forwardRef(() => MatchingModule),
+    forwardRef(() => CreditsModule),
   ],
   providers: [AuthService, PrismaService, JwtGuard, BlacklistCleanupTask],
   controllers: [AuthController],

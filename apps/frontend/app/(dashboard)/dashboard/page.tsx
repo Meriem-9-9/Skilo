@@ -9,6 +9,7 @@ import { SessionList } from '@/components/dashboard/session-list';
 import { Loader2, Plus, Sparkles, TrendingUp, Zap, Users as UsersIcon, Calendar, Share2, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { toast } from 'sonner';
 
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null);
@@ -35,10 +36,19 @@ export default function DashboardPage() {
     }
     fetchData();
   }, []);
+  
+  const handleCopyInvite = () => {
+    if (!user) return;
+    const inviteLink = `${window.location.origin}/register?ref=${user.id}`;
+    navigator.clipboard.writeText(inviteLink);
+    toast.success("Lien d'invitation copié !", {
+      description: "Partagez-le avec vos amis pour gagner des crédits."
+    });
+  };
 
   if (loading) {
     return (
-      <div className="flex-1 flex items-center justify-center">
+      <div className="h-[70vh] flex items-center justify-center">
         <div className="flex flex-col items-center gap-2">
           <Loader2 className="w-10 h-10 animate-spin text-primary" />
           <p className="text-sm font-medium text-muted-foreground">Chargement…</p>
@@ -130,7 +140,12 @@ export default function DashboardPage() {
                 Gagnez <span className="text-primary font-bold">5 crédits</span> pour chaque ami qui termine sa première session !
               </p>
             </div>
-            <Button variant="secondary" size="sm" className="w-full text-xs rounded-xl h-9">
+            <Button 
+              variant="secondary" 
+              size="sm" 
+              className="w-full text-xs rounded-xl h-9"
+              onClick={handleCopyInvite}
+            >
               Copier le lien d'invitation
             </Button>
           </div>

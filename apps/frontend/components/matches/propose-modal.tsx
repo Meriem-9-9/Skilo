@@ -72,8 +72,8 @@ export function ProposeSessionModal({
         recipientId: otherUser.id,
         scheduledAt,
         duration: parseInt(duration),
-        offeredSkillId: pair.offeredByA.id,
-        wantedSkillId: pair.offeredByB.id,
+        offeredSkillId: pair.offeredByA?.id,
+        wantedSkillId: pair.offeredByB?.id,
         message,
         meetingLink,
       });
@@ -125,11 +125,13 @@ export function ProposeSessionModal({
                 </SelectTrigger>
                 <SelectContent>
                   {match.matchedPairs.map((pair, i) => {
-                    const nameA = typeof pair.offeredByA === 'string' ? 'Compétence A' : (pair.offeredByA?.name || 'Compétence A');
-                    const nameB = typeof pair.offeredByB === 'string' ? 'Compétence B' : (pair.offeredByB?.name || 'Compétence B');
+                    const nameA = pair.offeredByA?.name || 'Aucune';
+                    const nameB = pair.offeredByB?.name || 'Aucune';
                     return (
                       <SelectItem key={i} value={i.toString()}>
-                        {nameA} ⇄ {nameB}
+                        <span className={!pair.offeredByA ? 'text-muted-foreground italic' : ''}>{nameA}</span>
+                        <span className="mx-2 text-slate-300">⇄</span>
+                        <span className={!pair.offeredByB ? 'text-muted-foreground italic' : ''}>{nameB}</span>
                       </SelectItem>
                     );
                   })}

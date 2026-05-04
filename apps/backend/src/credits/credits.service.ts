@@ -78,18 +78,24 @@ export class CreditsService {
   // ─── credit(userId, amount, sessionId) ───────────────────────────────────
   // Called when a session is COMPLETED — pays the teacher.
   // Caps at 20 and warns if the user would lose credits (Q3 decision).
-  async credit(userId: string, amount: number, sessionId: string) {
+  async credit(
+    userId: string, 
+    amount: number, 
+    sessionId: string, 
+    type: string = 'session_earned',
+    customDescription?: string
+  ) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { creditBalance: true },
     });
     if (!user) return;
-
+ 
     const rawNewBalance = user.creditBalance + amount;
     const surplus = Math.max(0, rawNewBalance - CREDIT_CAP);
     const actualAmount = amount - surplus;
     const newBalance = Math.min(rawNewBalance, CREDIT_CAP);
-
+ 
     // Warn BEFORE crediting if credits would be lost (Q3 decision)
     if (surplus > 0) {
       await this.prisma.notification.create({
@@ -104,7 +110,7 @@ export class CreditsService {
         },
       });
     }
-
+ 
     await this.prisma.$transaction([
       this.prisma.user.update({
         where: { id: userId },
@@ -113,25 +119,25 @@ export class CreditsService {
       this.prisma.creditTransaction.create({
         data: {
           userId,
-          sessionId,
-          type: 'session_earned',
+          sessionId: sessionId === 'none' ? null : sessionId,
+          type: type as any,
           amount: actualAmount,
           balanceAfter: newBalance,
-          description: `${actualAmount} crédit(s) gagné(s) pour la session enseignée`,
+          description: customDescription ?? `${actualAmount} crédit(s) gagné(s) pour la session enseignée`,
         },
       }),
     ]);
-
+ 
     // Notify the teacher
     await this.prisma.notification.create({
       data: {
         userId,
         type: 'credits_earned',
         payload: {
-          message: `Vous avez gagné ${actualAmount} crédit(s) suite à votre session.`,
+          message: customDescription ? `Vous avez reçu ${actualAmount} crédit(s) : ${customDescription}` : `Vous avez gagné ${actualAmount} crédit(s) suite à votre session.`,
           body: `Vous avez gagné ${actualAmount} crédit(s)`,
           amount: actualAmount,
-          sessionId,
+          sessionId: sessionId === 'none' ? null : sessionId,
         },
       },
     });

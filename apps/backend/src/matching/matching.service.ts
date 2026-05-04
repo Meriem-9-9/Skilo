@@ -25,7 +25,7 @@ type PerfectPair = {
 };
 
 type PartialMatch = {
-  offeredByA: { id: string; name: string; level: SkillLevel };
+  offeredByB: { id: string; name: string; level: SkillLevel };
   levelScore: number;
 };
 
@@ -207,7 +207,7 @@ export class MatchingService {
 
       const aw = aWanted.find((aw) => aw.skillCatalogId === bo.skillCatalogId);
       partialSkills.push({
-        offeredByA: {
+        offeredByB: {
           id: bo.skillCatalogId,
           name: bo.skillCatalog.name,
           level: bo.level,
@@ -239,10 +239,8 @@ export class MatchingService {
       score = partialSkills.reduce((acc, p) => acc + 40 + p.levelScore, 0);
       score = Math.min(score, 100);
       matchedPairs = partialSkills.map((p) => ({
-        offeredByA: p.offeredByA,
-        // For partial matches, offeredByB might not exist in the same way, 
-        // but we provide a placeholder to avoid frontend crashes
-        offeredByB: { id: 'none', name: 'Any Skill', level: 'beginner' as SkillLevel },
+        offeredByA: null,
+        offeredByB: p.offeredByB,
       }));
     }
     return { matchType, score, matchedPairs };

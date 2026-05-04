@@ -283,7 +283,7 @@ const del  = <T>(path: string)                => request<T>('DELETE', path);
 // ─── Auth API ─────────────────────────────────────────────────────────────────
 
 export const authApi = {
-  register: ({ passwordConfirm, ...data }: { firstName: string; lastName: string; email: string; password: string; passwordConfirm?: string }) =>
+  register: ({ passwordConfirm, ...data }: { firstName: string; lastName: string; email: string; password: string; passwordConfirm?: string; referredById?: string }) =>
     post<{ access_token: string; user: User }>('/auth/register', data),
 
   login: (data: { email: string; password: string }) =>

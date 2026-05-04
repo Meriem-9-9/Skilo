@@ -1,11 +1,11 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module } from '@nestjs/common';
 import { CreditsController } from './credits.controller';
 import { CreditsService } from './credits.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [AuthModule],
+  imports: [forwardRef(() => AuthModule)],
   controllers: [CreditsController],
   providers: [CreditsService, PrismaService],
   exports: [CreditsService], // SessionsModule needs this
