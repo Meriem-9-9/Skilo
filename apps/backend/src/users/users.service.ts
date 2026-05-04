@@ -8,7 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { AddSkillDto, UpdateSkillLevelDto } from './dto/skill.dto'; // ← was missing
 import { SkillType } from 'generated/prisma/client';
-import { MatchingService } from 'src/matching/matching.service';
+import { MatchingService } from '../matching/matching.service';
 // SkillsService removed — UsersService handles skill ops directly via Prisma
 
 // Fields we NEVER return in any response

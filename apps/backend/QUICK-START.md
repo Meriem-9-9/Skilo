@@ -38,7 +38,7 @@ pnpm run dev
 
 ### Option A: Avec VS Code REST Client
 
-1. Ouvrir `src/auth/auth.http`
+1. Ouvrir `../auth/auth.http`
 2. Cliquer sur "Send Request" pour chaque endpoint
 
 ### Option B: Avec cURL
@@ -150,7 +150,7 @@ LIMIT 10;
 La tâche s'exécute automatiquement à 3h du matin.
 
 ### Option 2: Déclencher manuellement
-Modifier `src/auth/tasks/blacklist-cleanup.task.ts` temporairement :
+Modifier `../auth/tasks/blacklist-cleanup.task.ts` temporairement :
 
 ```typescript
 // Changer de:
@@ -239,4 +239,4 @@ Si tous les tests passent, l'implémentation est **complète et fonctionnelle** 
 - `IMPLEMENTATION-SUMMARY.md` - Résumé implémentation
 
 **Fichiers de test:**
-- `src/auth/auth.http` - Requêtes REST Client
+- `../auth/auth.http` - Requêtes REST Client

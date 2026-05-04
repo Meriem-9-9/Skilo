@@ -16,8 +16,8 @@ import { AuthResponseDto } from './dto/auth-response.dto';
 import { JwtPayload } from './types/jwt-payload.type';
 import { User } from 'generated/prisma/client';
 import { Role } from './enums/role.enum';
-import { MatchingService } from 'src/matching/matching.service';
-import { CreditsService } from 'src/credits/credits.service';
+import { MatchingService } from '../matching/matching.service';
+import { CreditsService } from '../credits/credits.service';
 
 const BCRYPT_COST = 12; // spec FC-01-A
 const MAX_ATTEMPTS = 5;

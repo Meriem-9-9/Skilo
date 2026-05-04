@@ -209,7 +209,7 @@ Client                  Controller         JwtGuard            Database
 ## 📁 Structure des Fichiers
 
 ```
-src/auth/
+../auth/
 │
 ├── auth.controller.ts          # Endpoints HTTP
 │   ├── POST /register

@@ -23,13 +23,13 @@
 
 ## 📁 Fichiers Modifiés
 
-### src/auth/auth.controller.ts
+### ../auth/auth.controller.ts
 **Lignes modifiées:** 7 lignes
 - Import `Request as ExpressRequest`
 - Interface `RequestWithCookies`
 - Suppression 2x `as any`
 
-### src/auth/auth.service.ts
+### ../auth/auth.service.ts
 **Lignes modifiées:** 10 lignes
 - Parameter types `| undefined`
 - Null checks avec optional chaining
@@ -45,8 +45,8 @@ pnpm run build
 ```
 
 **Fichiers compilés:**
-- ✅ `dist/src/auth/auth.controller.js`
-- ✅ `dist/src/auth/auth.service.js`
+- ✅ `dist/../auth/auth.controller.js`
+- ✅ `dist/../auth/auth.service.js`
 - ✅ Tous les `.d.ts` générés
 
 ---

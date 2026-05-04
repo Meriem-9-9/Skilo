@@ -51,7 +51,7 @@
 ## 🔴 Critical Issues
 
 ### ❌ ISSUE #1: Access Token Exposed in Response Body
-**File:** `src/auth/auth.controller.ts`  
+**File:** `../auth/auth.controller.ts`  
 **Lines:** 43-46 (register), 62-65 (login), 87-90 (refresh)  
 **Severity:** HIGH
 
@@ -88,7 +88,7 @@ Access tokens are returned in the JSON response body, making them accessible to 
 ---
 
 ### ❌ ISSUE #2: No Refresh Token Rotation
-**File:** `src/auth/auth.service.ts`  
+**File:** `../auth/auth.service.ts`  
 **Lines:** 133-166 (entire refresh method)  
 **Specific Issue:** Line 163 (only generates new access token)  
 **Severity:** MEDIUM-HIGH
@@ -134,7 +134,7 @@ Then update the controller to set the new refresh token cookie.
 ---
 
 ### ❌ ISSUE #3: Logout Requires Valid Access Token
-**File:** `src/auth/auth.controller.ts`  
+**File:** `../auth/auth.controller.ts`  
 **Lines:** 94-105 (entire logout method)  
 **Specific Issue:** Line 94 (`@UseGuards(JwtAuthGuard)`)  
 **Severity:** MEDIUM
@@ -180,7 +180,7 @@ async logout(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
 ## 🟡 Security Warnings
 
 ### ⚠️ WARNING #1: No Rate Limiting on Auth Endpoints
-**File:** `src/auth/auth.controller.ts`  
+**File:** `../auth/auth.controller.ts`  
 **Lines:** 36-47 (register), 52-66 (login), 72-91 (refresh)  
 **Severity:** MEDIUM
 
@@ -204,7 +204,7 @@ Or use a reverse proxy (nginx, Cloudflare) for rate limiting.
 ---
 
 ### ⚠️ WARNING #2: Weak Password Requirements
-**File:** `src/auth/dto/register.dto.ts`  
+**File:** `../auth/dto/register.dto.ts`  
 **Line:** 21-23  
 **Severity:** MEDIUM
 
@@ -234,7 +234,7 @@ Add special character requirement:
 ---
 
 ### ⚠️ WARNING #3: No Email Verification
-**File:** `src/auth/auth.service.ts`  
+**File:** `../auth/auth.service.ts`  
 **Lines:** 43-65 (entire register method)  
 **Severity:** MEDIUM
 
@@ -283,9 +283,9 @@ Implement email verification flow:
 ---
 
 ### ⚠️ WARNING #4: Token Blacklist Can Grow Large
-**File:** `src/auth/tasks/blacklist-cleanup.task.ts`  
+**File:** `../auth/tasks/blacklist-cleanup.task.ts`  
 **Estimated Line:** ~15-20 (based on typical cron task structure)  
-**Also affects:** `src/auth/auth.service.ts` Line 171-188 (logout method adds to blacklist)  
+**Also affects:** `../auth/auth.service.ts` Line 171-188 (logout method adds to blacklist)  
 **Severity:** LOW-MEDIUM
 
 **Problem:**
@@ -293,7 +293,7 @@ Blacklist cleanup runs only once per day (3 AM). During peak usage, the `token_b
 
 **Current Cleanup:**
 ```typescript
-// src/auth/tasks/blacklist-cleanup.task.ts
+// ../auth/tasks/blacklist-cleanup.task.ts
 @Cron(CronExpression.EVERY_DAY_AT_3AM)
 async cleanExpiredTokens() {
   // Only runs once per day
@@ -310,7 +310,7 @@ async cleanExpiredTokens() {
 ---
 
 ### ⚠️ WARNING #5: CORS Origin Hardcoded
-**File:** `src/main.ts`  
+**File:** `../main.ts`  
 **Line:** 13-17  
 **Severity:** LOW
 
@@ -342,7 +342,7 @@ app.enableCors({
 ## 🔵 Minor Issues & Improvements
 
 ### 🔹 ISSUE #1: Missing Environment Variable Validation
-**File:** `src/main.ts`  
+**File:** `../main.ts`  
 **Line:** 9-11 (only validates DATABASE_URL, not JWT secrets)  
 **Severity:** LOW
 
@@ -371,7 +371,7 @@ requiredEnvVars.forEach((key) => {
 ---
 
 ### 🔹 ISSUE #2: Inconsistent Error Messages
-**Files:** `src/auth/auth.service.ts`, `src/auth/auth.controller.ts`, `src/auth/dto/register.dto.ts`  
+**Files:** `../auth/auth.service.ts`, `../auth/auth.controller.ts`, `../auth/dto/register.dto.ts`  
 **Lines:** Multiple locations (48, 80, 104, 141, 145, 153, 160, 198, etc.)  
 **Severity:** LOW
 
@@ -382,10 +382,10 @@ Error messages mix French and English:
 
 **Examples:**
 ```typescript
-// src/auth/auth.service.ts:48
+// ../auth/auth.service.ts:48
 throw new ConflictException('Email déjà utilisé');  // French
 
-// src/auth/dto/register.dto.ts:12
+// ../auth/dto/register.dto.ts:12
 @IsEmail({}, { message: 'Email invalide' })  // French
 
 // Future validation errors would likely be in English by default
@@ -397,7 +397,7 @@ Standardize all messages to one language (likely French based on existing code).
 ---
 
 ### 🔹 ISSUE #3: Cookie Path May Be Too Restrictive
-**File:** `src/auth/auth.controller.ts`  
+**File:** `../auth/auth.controller.ts`  
 **Line:** 22-28 (COOKIE_OPTIONS constant)  
 **Specific Line:** 27  
 **Severity:** LOW
@@ -425,7 +425,7 @@ If you later need to access the refresh token from other endpoints, this path re
 ---
 
 ### 🔹 ISSUE #4: No Monitoring/Logging for Security Events
-**File:** `src/auth/auth.service.ts`  
+**File:** `../auth/auth.service.ts`  
 **Lines:** 68-115 (validateUser - no failed login logging), 133-166 (refresh - no logging), 171-188 (logout - no logging)  
 **Severity:** LOW
 
@@ -462,7 +462,7 @@ Add optional "remember me" checkbox:
 ---
 
 ### 🔹 ISSUE #6: User Select Fields Properly Configured ✅
-**File:** `src/auth/auth.service.ts`  
+**File:** `../auth/auth.service.ts`  
 **Line:** 20-32 (USER_SELECT constant)  
 **Severity:** N/A - This is actually CORRECT
 

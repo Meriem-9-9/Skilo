@@ -19,7 +19,7 @@ Le système d'authentification de Skilo possède des **fondations solides** mais
 ## ✅ Fonctionnalités EXISTANTES
 
 ### 1. Register (Inscription) ✅
-**Fichier:** `src/auth/auth.controller.ts` (ligne 23-27)  
+**Fichier:** `../auth/auth.controller.ts` (ligne 23-27)  
 **Endpoint:** `POST /auth/register`
 
 **Fonctionnalités:**
@@ -37,7 +37,7 @@ Le système d'authentification de Skilo possède des **fondations solides** mais
 ---
 
 ### 2. Login (Connexion) ✅
-**Fichier:** `src/auth/auth.controller.ts` (ligne 29-33)  
+**Fichier:** `../auth/auth.controller.ts` (ligne 29-33)  
 **Endpoint:** `POST /auth/login`
 
 **Fonctionnalités:**
@@ -53,7 +53,7 @@ Le système d'authentification de Skilo possède des **fondations solides** mais
 ---
 
 ### 3. Profile Endpoint ✅
-**Fichier:** `src/auth/auth.controller.ts` (ligne 35-40)  
+**Fichier:** `../auth/auth.controller.ts` (ligne 35-40)  
 **Endpoint:** `GET /auth/me`
 
 **Fonctionnalités:**
@@ -64,7 +64,7 @@ Le système d'authentification de Skilo possède des **fondations solides** mais
 ---
 
 ### 4. JWT Guards ✅
-**Fichier:** `src/auth/guards/jwt.guard.ts`
+**Fichier:** `../auth/guards/jwt.guard.ts`
 
 **Fonctionnalités:**
 - ✅ Extraction token Bearer
@@ -76,7 +76,7 @@ Le système d'authentification de Skilo possède des **fondations solides** mais
 ---
 
 ### 5. DTO Validation ✅
-**Fichiers:** `src/auth/dto/*.dto.ts`
+**Fichiers:** `../auth/dto/*.dto.ts`
 
 **RegisterDto:**
 - ✅ Email validation + transformation
@@ -308,7 +308,7 @@ async login(dto: LoginDto): Promise<AuthResponseDto> {
 
 ### BUG #1: RolesGuard Cassé 🔴
 
-**Fichier:** `src/auth/guards/roles.guard.ts` (ligne 30-32)
+**Fichier:** `../auth/guards/roles.guard.ts` (ligne 30-32)
 
 **Problème:**
 ```typescript
@@ -334,7 +334,7 @@ if (!requiredRoles.includes(userRole)) {
 
 **Problèmes multiples:**
 
-1. **JwtPayload sans role** (`src/auth/types/jwt-payload.type.ts` ligne 6)
+1. **JwtPayload sans role** (`../auth/types/jwt-payload.type.ts` ligne 6)
 ```typescript
 export type JwtPayload = {
   sub: string;
@@ -345,7 +345,7 @@ export type JwtPayload = {
 };
 ```
 
-2. **Role non ajouté au payload** (`src/auth/auth.service.ts` ligne 62)
+2. **Role non ajouté au payload** (`../auth/auth.service.ts` ligne 62)
 ```typescript
 private async buildResponse(user: User): Promise<AuthResponseDto> {
   const payload: JwtPayload = {
@@ -390,7 +390,7 @@ if (!requiredRoles.includes(userRole)) {
 
 ### BUG #3: LoginDto Sans Transformation ⚠️
 
-**Fichier:** `src/auth/dto/login.dto.ts`
+**Fichier:** `../auth/dto/login.dto.ts`
 
 **Problème:**
 ```typescript
@@ -480,7 +480,7 @@ res.cookie('refresh_token', refreshToken, {
 
 ### 3. CORS Configuration 🟡
 
-**À vérifier dans:** `src/main.ts`
+**À vérifier dans:** `../main.ts`
 
 **Configuration recommandée:**
 ```typescript

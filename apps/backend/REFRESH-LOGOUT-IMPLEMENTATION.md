@@ -137,7 +137,7 @@ Retourne maintenant le refresh token dans un cookie httpOnly.
 
 ## 📁 Fichiers Modifiés
 
-### 1. `src/auth/auth.service.ts`
+### 1. `../auth/auth.service.ts`
 **Ajouts:**
 - `refresh(refreshToken: string)` - Renouvelle les tokens
 - `logout(refreshToken: string)` - Révoque le refresh token
@@ -148,7 +148,7 @@ Retourne maintenant le refresh token dans un cookie httpOnly.
 **Modifications:**
 - `buildResponse()` génère maintenant 2 tokens avec secrets différents
 
-### 2. `src/auth/auth.controller.ts`
+### 2. `../auth/auth.controller.ts`
 **Ajouts:**
 - `refresh()` endpoint - POST `/auth/refresh`
 - `logout()` endpoint - POST `/auth/logout`
@@ -159,11 +159,11 @@ Retourne maintenant le refresh token dans un cookie httpOnly.
 - `register()` - Stocke refresh token dans cookie
 - `login()` - Stocke refresh token dans cookie
 
-### 3. `src/auth/dto/auth-response.dto.ts`
+### 3. `../auth/dto/auth-response.dto.ts`
 **Modifications:**
 - Ajout champ `refresh_token: string`
 
-### 4. `src/auth/auth.module.ts`
+### 4. `../auth/auth.module.ts`
 **Ajouts:**
 - Import `BlacklistCleanupTask`
 - Provider `BlacklistCleanupTask`
@@ -171,7 +171,7 @@ Retourne maintenant le refresh token dans un cookie httpOnly.
 **Modifications:**
 - JWT expiration: `1h` → `15m`
 
-### 5. `src/auth/tasks/blacklist-cleanup.task.ts` (nouveau)
+### 5. `../auth/tasks/blacklist-cleanup.task.ts` (nouveau)
 **Fonctionnalité:**
 - Tâche CRON quotidienne (3 AM)
 - Supprime tokens expirés de la blacklist

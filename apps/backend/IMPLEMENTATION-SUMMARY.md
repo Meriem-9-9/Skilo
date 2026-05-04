@@ -21,13 +21,13 @@ J'ai implémenté avec succès les 2 fonctionnalités critiques :
 - ✅ `REFRESH-LOGOUT-IMPLEMENTATION.md` - Documentation technique détaillée
 
 ### 2. Code
-- ✅ `src/auth/tasks/blacklist-cleanup.task.ts` - Tâche CRON de nettoyage
+- ✅ `../auth/tasks/blacklist-cleanup.task.ts` - Tâche CRON de nettoyage
 
 ---
 
 ## 📝 Fichiers Modifiés
 
-### 1. `src/auth/auth.service.ts`
+### 1. `../auth/auth.service.ts`
 **Nouveautés:**
 - ✅ `refresh()` - Renouvelle access + refresh token
 - ✅ `logout()` - Révoque refresh token
@@ -35,7 +35,7 @@ J'ai implémenté avec succès les 2 fonctionnalités critiques :
 - ✅ Import `crypto` et `ConfigService`
 - ✅ Génération séparée des tokens (access: 15min, refresh: 7j)
 
-### 2. `src/auth/auth.controller.ts`
+### 2. `../auth/auth.controller.ts`
 **Nouveautés:**
 - ✅ `POST /auth/refresh` - Endpoint renouvellement
 - ✅ `POST /auth/logout` - Endpoint déconnexion
@@ -46,17 +46,17 @@ J'ai implémenté avec succès les 2 fonctionnalités critiques :
 - ✅ `register()` - Stocke refresh_token dans cookie
 - ✅ `login()` - Stocke refresh_token dans cookie
 
-### 3. `src/auth/dto/auth-response.dto.ts`
+### 3. `../auth/dto/auth-response.dto.ts`
 - ✅ Ajout champ `refresh_token: string`
 
-### 4. `src/auth/auth.module.ts`
+### 4. `../auth/auth.module.ts`
 - ✅ Provider `BlacklistCleanupTask`
 - ✅ JWT expiration: 1h → 15m
 
-### 5. `src/main.ts`
+### 5. `../main.ts`
 - ✅ Validation `JWT_REFRESH_SECRET`
 
-### 6. `src/auth/auth.http`
+### 6. `../auth/auth.http`
 - ✅ Ajout requêtes `/auth/refresh` et `/auth/logout`
 
 ---
@@ -171,8 +171,8 @@ POST http://localhost:2006/auth/refresh
 ### Erreurs de build non liées
 Le build échoue actuellement avec 3 erreurs dans d'autres fichiers :
 1. `prisma/seed.ts` - Champ `onboardingStep` commenté dans schéma
-2. `src/users/dto/user-response.dto.ts` - Utilise `onboardingStep`
-3. `src/users/users.service.ts` - Utilise `emailLower`
+2. `../users/dto/user-response.dto.ts` - Utilise `onboardingStep`
+3. `../users/users.service.ts` - Utilise `emailLower`
 
 **Ces erreurs existaient AVANT l'implémentation et ne sont PAS liées aux changements auth.**
 
@@ -188,7 +188,7 @@ Le build échoue actuellement avec 3 erreurs dans d'autres fichiers :
 ### Phase 2 - Améliorations Sécurité (Priorité Haute)
 
 1. **Corriger RolesGuard** (30 min)
-   - Fichier: `src/auth/guards/roles.guard.ts`
+   - Fichier: `../auth/guards/roles.guard.ts`
    - Bug ligne 30: logique inversée
    - Fix: Vérifier `user.role` dans `requiredRoles`
 
@@ -226,7 +226,7 @@ Le build échoue actuellement avec 3 erreurs dans d'autres fichiers :
 - `.env.example` - Variables d'environnement requises
 
 ### Tests
-- `src/auth/auth.http` - Requêtes HTTP pour tester manuellement
+- `../auth/auth.http` - Requêtes HTTP pour tester manuellement
 
 ---
 

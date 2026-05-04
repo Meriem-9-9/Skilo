@@ -6,7 +6,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { OnboardingDto } from './dto/onboarding.dto';
 import { SkillType } from 'generated/prisma/client';
-import { MatchingService } from 'src/matching/matching.service';
+import { MatchingService } from '../matching/matching.service';
 
 @Injectable()
 export class OnboardingService {

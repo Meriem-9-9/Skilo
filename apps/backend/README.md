@@ -50,7 +50,7 @@ This backend implements a secure JWT-based authentication system with:
    pnpm run dev
    ```
 
-3. **Test endpoints** (see `src/auth/auth.http`)
+3. **Test endpoints** (see `../auth/auth.http`)
    - `POST /auth/register` - Create account
    - `POST /auth/login` - Sign in
    - `POST /auth/refresh` - Renew access token

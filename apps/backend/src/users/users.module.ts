@@ -4,7 +4,7 @@ import { UsersService } from './users.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthModule } from '../auth/auth.module';
 import { SkillsService } from '../skills/skills.service';
-import { MatchingModule } from 'src/matching/matching.module';
+import { MatchingModule } from '../matching/matching.module';
 
 @Module({
   imports: [AuthModule, MatchingModule], // provides JwtGuard + JwtModule

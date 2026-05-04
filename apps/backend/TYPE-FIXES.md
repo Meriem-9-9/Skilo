@@ -137,7 +137,7 @@ pnpm run build
 
 ### Fichiers compilés
 ```
-dist/src/auth/
+dist/../auth/
 ├── auth.controller.js ✅
 ├── auth.controller.d.ts ✅
 ├── auth.service.js ✅

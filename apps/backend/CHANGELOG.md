@@ -75,7 +75,7 @@
 
 ## 🔧 Fichiers de Code Créés
 
-### 1. `src/auth/tasks/blacklist-cleanup.task.ts`
+### 1. `../auth/tasks/blacklist-cleanup.task.ts`
 **Taille:** ~800 bytes  
 **Type:** Service NestJS  
 **Fonction:** 
@@ -94,7 +94,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 
 ## ✏️ Fichiers de Code Modifiés
 
-### 1. `src/auth/auth.service.ts`
+### 1. `../auth/auth.service.ts`
 **Changements:** Major update  
 
 **Ajouts:**
@@ -112,7 +112,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 
 ---
 
-### 2. `src/auth/auth.controller.ts`
+### 2. `../auth/auth.controller.ts`
 **Changements:** Major update
 
 **Ajouts:**
@@ -128,7 +128,7 @@ import { PrismaService } from '../../prisma/prisma.service';
 
 ---
 
-### 3. `src/auth/dto/auth-response.dto.ts`
+### 3. `../auth/dto/auth-response.dto.ts`
 **Changements:** Minor update
 
 **Ajouts:**
@@ -153,7 +153,7 @@ export class AuthResponseDto {
 
 ---
 
-### 4. `src/auth/auth.module.ts`
+### 4. `../auth/auth.module.ts`
 **Changements:** Minor update
 
 **Ajouts:**
@@ -165,7 +165,7 @@ export class AuthResponseDto {
 
 ---
 
-### 5. `src/main.ts`
+### 5. `../main.ts`
 **Changements:** Minor update
 
 **Ajouts:**
@@ -179,7 +179,7 @@ if (!process.env.JWT_REFRESH_SECRET) {
 
 ---
 
-### 6. `src/auth/auth.http`
+### 6. `../auth/auth.http`
 **Changements:** Minor update
 
 **Ajouts:**
@@ -388,10 +388,10 @@ if (!process.env.JWT_REFRESH_SECRET) {
 - `AUTH-ARCHITECTURE.md` - Architecture détaillée
 
 ### Tests
-- `src/auth/auth.http` - Requêtes REST Client
+- `../auth/auth.http` - Requêtes REST Client
 
 ### Code
-- `src/auth/` - Tous les fichiers auth
+- `../auth/` - Tous les fichiers auth
 
 ---
 

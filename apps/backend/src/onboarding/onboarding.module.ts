@@ -3,7 +3,7 @@ import { OnboardingController } from './onboarding.controller';
 import { OnboardingService } from './onboarding.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { AuthModule } from '../auth/auth.module';
-import { MatchingModule } from 'src/matching/matching.module';
+import { MatchingModule } from '../matching/matching.module';
 
 @Module({
   imports: [
