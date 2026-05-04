@@ -4,6 +4,13 @@
 
 ---
 
+## 🌐 Liens de Déploiement
+
+- **Frontend** : [skilo-frontend-zeta.vercel.app](https://skilo-frontend-zeta.vercel.app/)
+- **Backend (API)** : [skilo-backend-two.vercel.app](https://skilo-backend-two.vercel.app/)
+
+---
+
 ## ✨ Fonctionnalités Clés
 
 - **🎯 Matching Intelligent** : Un algorithme qui analyse vos compétences offertes et recherchées pour vous proposer des "Matchs Parfaits" (échange mutuel) ou des "Matchs Partiels".
