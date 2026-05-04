@@ -62,6 +62,7 @@ function SessionCard({
   onOpenReview: (session: Session) => void;
   highlight?: boolean;
 }) {
+  const router = useRouter();
   const isInitiator = session.proposedBy?.id === currentUserId;
   const other = isInitiator ? session.recipient : session.proposedBy;
   if (!other) return null;
@@ -79,7 +80,8 @@ function SessionCard({
   return (
     <div 
       id={`session-${session.id}`}
-      className={`group relative bg-card/40 backdrop-blur-md border rounded-[2rem] p-6 transition-all hover:bg-card/60 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1 overflow-hidden ${highlight ? 'border-primary ring-2 ring-primary/20 bg-primary/5 shadow-lg shadow-primary/10' : 'border-border/50'}`}
+      className={`group relative bg-card/40 backdrop-blur-md border rounded-[2rem] p-6 transition-all hover:bg-card/60 hover:shadow-2xl hover:shadow-primary/5 hover:-translate-y-1 overflow-hidden cursor-pointer ${highlight ? 'border-primary ring-2 ring-primary/20 bg-primary/5 shadow-lg shadow-primary/10' : 'border-border/50'}`}
+      onClick={() => router.push(`/sessions/${session.id}`)}
     >
       {/* Decorative gradient blob */}
       <div className={`absolute -top-24 -right-24 w-48 h-48 blur-[100px] rounded-full group-hover:bg-primary/10 transition-colors ${highlight ? 'bg-primary/20' : 'bg-primary/5'}`} />
@@ -101,6 +103,7 @@ function SessionCard({
           {['pending', 'confirmed'].includes(session.status) && (
             <Link
               href={`/sessions/${session.id}/chat`}
+              onClick={(e) => e.stopPropagation()}
               className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-primary text-primary-foreground text-[10px] font-black uppercase tracking-widest hover:bg-primary/90 transition-all shadow-sm active:scale-95"
             >
               <MessageCircle className="w-3.5 h-3.5" />
@@ -112,7 +115,7 @@ function SessionCard({
 
       {/* Main Info Grid */}
       <div className="grid grid-cols-1 md:grid-cols-[auto_1fr] gap-6 items-start relative z-10">
-        <Link href={`/users/${other.id}`} className="relative mx-auto md:mx-0 group/avatar">
+        <Link href={`/users/${other.id}`} onClick={(e) => e.stopPropagation()} className="relative mx-auto md:mx-0 group/avatar">
           <Avatar user={other} size={16} />
           {!isInitiator && session.status === 'pending' && (
             <div className="absolute -top-1 -right-1 w-6 h-6 bg-primary rounded-xl border-4 border-background flex items-center justify-center shadow-lg">
@@ -123,7 +126,7 @@ function SessionCard({
 
         <div className="space-y-5 text-center md:text-left">
           <div>
-            <Link href={`/users/${other.id}`}>
+            <Link href={`/users/${other.id}`} onClick={(e) => e.stopPropagation()}>
               <h3 className="text-2xl font-black text-foreground tracking-tight hover:text-primary transition-colors">
                 {other.firstName} {other.lastName}
               </h3>
@@ -204,13 +207,13 @@ function SessionCard({
           {!isInitiator && session.status === 'pending' && (
             <>
               <button
-                onClick={() => onAccept(session.id)}
+                onClick={(e) => { e.stopPropagation(); onAccept(session.id); }}
                 className="flex-[2] h-14 flex items-center justify-center gap-3 rounded-2xl bg-foreground text-background text-sm font-black uppercase tracking-widest hover:opacity-90 transition-all shadow-xl active:scale-95"
               >
                 <Check className="w-5 h-5" /> Accepter
               </button>
               <button
-                onClick={() => onDecline(session.id)}
+                onClick={(e) => { e.stopPropagation(); onDecline(session.id); }}
                 className="flex-1 h-14 flex items-center justify-center gap-3 rounded-2xl border-2 border-border text-sm font-black uppercase tracking-widest hover:bg-muted transition-all active:scale-95"
               >
                 <X className="w-5 h-5" />
@@ -227,13 +230,13 @@ function SessionCard({
               </div>
               <div className="flex gap-3">
                 <button
-                  onClick={() => onConfirm(session.id, true)}
+                  onClick={(e) => { e.stopPropagation(); onConfirm(session.id, true); }}
                   className="flex-1 h-14 flex items-center justify-center gap-3 rounded-2xl bg-emerald-500 text-white text-sm font-black uppercase tracking-widest hover:bg-emerald-600 transition-all shadow-xl shadow-emerald-500/20 active:scale-95"
                 >
                   <Check className="w-5 h-5" /> Oui, c'est fait
                 </button>
                 <button
-                  onClick={() => onConfirm(session.id, false)}
+                  onClick={(e) => { e.stopPropagation(); onConfirm(session.id, false); }}
                   className="flex-1 h-14 flex items-center justify-center gap-3 rounded-2xl border-2 border-red-500/20 bg-red-500/5 text-red-500 text-sm font-black uppercase tracking-widest hover:bg-red-500/10 transition-all active:scale-95"
                 >
                   <X className="w-5 h-5" /> Non
@@ -245,7 +248,7 @@ function SessionCard({
           {/* Review Button */}
           {canReview && (
             <button
-              onClick={() => onOpenReview(session)}
+              onClick={(e) => { e.stopPropagation(); onOpenReview(session); }}
               className="w-full h-14 flex items-center justify-center gap-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 text-amber-500 text-sm font-black uppercase tracking-widest hover:bg-amber-500/20 transition-all shadow-sm active:scale-[0.98] mt-2"
             >
               <Star className="w-5 h-5" /> Laisser un avis
@@ -255,7 +258,7 @@ function SessionCard({
           {/* Cancel (if cancellable) */}
           {(session.status === 'pending' || session.status === 'confirmed') && (
             <button
-              onClick={() => onCancel(session.id)}
+              onClick={(e) => { e.stopPropagation(); onCancel(session.id); }}
               className="text-[10px] font-black text-muted-foreground/60 hover:text-red-500 transition-colors py-2 px-4 rounded-xl hover:bg-red-500/5 ml-auto flex items-center gap-2 uppercase tracking-widest"
             >
               <AlertTriangle className="w-3.5 h-3.5" />

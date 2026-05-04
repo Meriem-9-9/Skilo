@@ -16,11 +16,11 @@ export class SkillsService {
   // Returns top 10 approved skills sorted by usageCount (most used first)
   async search(q?: string) {
     if (!q || q.trim().length === 0) {
-      // No query → return top 10 most popular approved skills
+      // No query → return top 100 approved skills sorted by usageCount then name
       return this.prisma.skillCatalog.findMany({
         where: { status: 'approved' },
-        orderBy: { usageCount: 'desc' },
-        take: 10,
+        orderBy: [{ usageCount: 'desc' }, { name: 'asc' }],
+        take: 100,
         select: {
           id: true,
           name: true,
@@ -42,8 +42,8 @@ export class SkillsService {
           { aliases: { has: term } },
         ],
       },
-      orderBy: { usageCount: 'desc' },
-      take: 10,
+      orderBy: [{ usageCount: 'desc' }, { name: 'asc' }],
+      take: 100,
       select: {
         id: true,
         name: true,
