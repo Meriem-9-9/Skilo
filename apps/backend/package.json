@@ -8,6 +8,7 @@
   "scripts": {
     "build": "prisma generate && nest build",
     "postinstall": "prisma generate",
+    "update-catalog": "tsx ./prisma/update_catalog.ts",
     "format": "prettier --write \"../**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
     "dev": "nest start --watch",

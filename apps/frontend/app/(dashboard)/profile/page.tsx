@@ -318,7 +318,7 @@ function AddSkillModal({
                           <SkillChip
                             key={r.id}
                             skill={r}
-                            selected={selected?.id === r.id}
+                            selected={false}
                             disabled={isAlreadyAdded}
                             onClick={() => setSelected(r)}
                           />
