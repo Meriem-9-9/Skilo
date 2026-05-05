@@ -43,10 +43,12 @@ export class ReviewsController {
   // GET /users/:id/reviews — sits in ReviewsController but uses /users prefix
   @Get('users/:id/reviews')
   getForUser(
-    @Param('id', ParseUUIDPipe) id: string,
+    @Param('id') id: string,
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
+    @Request() req: RequestWithUser,
   ) {
-    return this.reviewsService.getForUser(id, page, limit);
+    const userId = id === 'me' ? req.user.sub : id;
+    return this.reviewsService.getForUser(userId, page, limit);
   }
 }

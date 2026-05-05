@@ -90,8 +90,8 @@ export default function SessionDetailPage() {
   const StatusIcon = config.icon;
 
   const canAccept = !isInitiator && session.status === 'pending';
-  const canConfirm = (session.status === 'confirmed' || session.status === 'pending') && 
-                     ((isInitiator && !session.confirmedByA) || (!isInitiator && !session.confirmedByB));
+  const canConfirm = session.status === 'confirmed' && 
+                     ((isInitiator && session.confirmedByA === null) || (!isInitiator && session.confirmedByB === null));
   
   const canReview = session.status === 'completed' && 
                     !session.reviews?.some(r => r.reviewerId === authUser?.id);
@@ -222,20 +222,32 @@ export default function SessionDetailPage() {
               <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 bg-background border border-border rounded-full flex items-center justify-center z-10 shadow-sm">
                 <ArrowLeft className="w-4 h-4 text-primary" />
               </div>
-
+              
+              {/* Logic: 
+                  If isInitiator: Give Offered, Receive Wanted 
+                  If !isInitiator: Give Wanted, Receive Offered 
+              */}
               <div className="space-y-4">
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Vous donnez</p>
                 <div className="p-4 bg-primary/5 border border-primary/10 rounded-2xl">
-                  <p className="font-bold text-primary">Compétence A</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Expertise</p>
+                  <p className="font-bold text-primary">
+                    {isInitiator 
+                      ? (session.skillsExchanged[0]?.offeredSkillName || 'Compétence') 
+                      : (session.skillsExchanged[0]?.wantedSkillName || 'Compétence')}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Donné à {otherUser.firstName}</p>
                 </div>
               </div>
 
               <div className="space-y-4 text-right">
                 <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground">Vous recevez</p>
                 <div className="p-4 bg-indigo-500/5 border border-indigo-500/10 rounded-2xl">
-                  <p className="font-bold text-indigo-600">Compétence B</p>
-                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Investissement</p>
+                  <p className="font-bold text-indigo-600">
+                    {isInitiator 
+                      ? (session.skillsExchanged[0]?.wantedSkillName || 'Compétence') 
+                      : (session.skillsExchanged[0]?.offeredSkillName || 'Compétence')}
+                  </p>
+                  <p className="text-[10px] text-muted-foreground uppercase tracking-wider">Reçu de {otherUser.firstName}</p>
                 </div>
               </div>
             </div>

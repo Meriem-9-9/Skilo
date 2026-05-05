@@ -2,15 +2,15 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/contexts/auth-context';
-import { usersApi, skillsApi, uploadApi } from '@/lib/api';
+import { usersApi, skillsApi, uploadApi, reviewsApi } from '@/lib/api';
 import type {
-  User, UserSkill, SkillCatalogItem, SkillLevel, SkillType, SkillCategory,
+  User, UserSkill, SkillCatalogItem, SkillLevel, SkillType, SkillCategory, Review
 } from '@/lib/api';
 import { 
   Monitor, Globe, Palette, Briefcase, Trophy, ChefHat, Sparkles, 
   Camera, CheckCircle2, AlertCircle, XCircle, X, GraduationCap, 
   BookOpen, BarChart3, Star, Coins, Medal, User as UserIcon, Plus,
-  Loader2, Search
+  Loader2, Search, Award, MessageSquare
 } from 'lucide-react';
 import {
   Dialog,
@@ -98,7 +98,75 @@ function StrengthBar({ score }: { score: number }) {
   );
 }
 
-// ─── Avatar upload ────────────────────────────────────────────────────────────
+function Stars({ rating }: { rating: number }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {[...Array(5)].map((_, i) => (
+        <Star 
+          key={i} 
+          className={`w-3.5 h-3.5 ${i < Math.round(rating) ? 'text-amber-400 fill-amber-400' : 'text-muted-foreground/30'}`} 
+        />
+      ))}
+    </div>
+  );
+}
+
+function formatDate(iso: string) {
+  return new Date(iso).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+}
+
+function ReviewCard({ review }: { review: Review }) {
+  return (
+    <div className="p-6 border border-border/50 rounded-2xl bg-card/30 space-y-4">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center border border-primary/20 overflow-hidden">
+            {review.reviewer.avatarUrl ? (
+              <img src={review.reviewer.avatarUrl} alt="" className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-xs font-black text-primary">
+                {review.reviewer.firstName[0]}{review.reviewer.lastName?.[0]}
+              </span>
+            )}
+          </div>
+          <div>
+            <p className="text-sm font-bold text-foreground">{review.reviewer.firstName} {review.reviewer.lastName}</p>
+            <p className="text-[10px] text-muted-foreground font-medium">{formatDate(review.submittedAt)}</p>
+          </div>
+        </div>
+        <div className="flex flex-col items-end gap-1">
+          <Stars rating={review.rating} />
+          {review.skillCatalog && (
+            <span className="text-[10px] font-black text-primary uppercase tracking-tighter">
+              {review.skillCatalog.name}
+            </span>
+          )}
+        </div>
+      </div>
+
+      {review.comment && (
+        <p className="text-sm text-muted-foreground italic leading-relaxed">"{review.comment}"</p>
+      )}
+
+      {(review.ratingPedagogy || review.ratingPunctuality || review.ratingCommunication) && (
+        <div className="flex flex-wrap gap-4 pt-3 border-t border-border/30">
+          {review.ratingPedagogy && (
+            <div className="flex items-center gap-1.5">
+              <Award className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-[10px] font-bold text-muted-foreground uppercase">Pédagogie: <span className="text-foreground">{review.ratingPedagogy}/5</span></span>
+            </div>
+          )}
+          {review.ratingCommunication && (
+            <div className="flex items-center gap-1.5">
+              <MessageSquare className="w-3.5 h-3.5 text-muted-foreground" />
+              <span className="text-[10px] font-bold text-muted-foreground uppercase">Comm.: <span className="text-foreground">{review.ratingCommunication}/5</span></span>
+            </div>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
 
 function AvatarUpload({
   currentUrl, firstName, lastName, onUploaded,
@@ -523,17 +591,23 @@ export default function ProfilePage() {
   const [bio,       setBio]       = useState('');
   const [avatarUrl, setAvatarUrl] = useState('');
   const [skills,    setSkills]    = useState<UserSkill[]>([]);
+  const [reviews,   setReviews]   = useState<Review[]>([]);
 
   useEffect(() => {
-    usersApi.me()
-      .then((data) => {
-        setProfile(data);
-        setFirstName(data.firstName);
-        setLastName(data.lastName);
-        setCity(data.city ?? '');
-        setBio(data.bio ?? '');
-        setAvatarUrl(data.avatarUrl ?? '');
-        setSkills(data.skills);
+    setLoading(true);
+    Promise.all([
+      usersApi.me(),
+      reviewsApi.forUser('me') // 'me' is handled by the backend reviews controller if it exists, or I should use authUser.id
+    ])
+      .then(([userData, reviewData]) => {
+        setProfile(userData);
+        setFirstName(userData.firstName);
+        setLastName(userData.lastName);
+        setCity(userData.city ?? '');
+        setBio(userData.bio ?? '');
+        setAvatarUrl(userData.avatarUrl ?? '');
+        setSkills(userData.skills);
+        setReviews(reviewData.data);
       })
       .catch((e) => toast.error(e.message))
       .finally(() => setLoading(false));
@@ -724,10 +798,39 @@ export default function ProfilePage() {
                 <p className="text-xs font-semibold text-muted-foreground mt-1 uppercase tracking-wide">Crédits</p>
               </div>
             </div>
-            {profile.hasBadgeFiable && (
-              <div className="mt-6 flex items-center gap-2 justify-center text-sm bg-amber-500/10 text-amber-700 py-3 rounded-xl font-bold border border-amber-500/20">
+            {profile.hasBadgeFiable ? (
+              <div className="mt-6 flex items-center gap-2 justify-center text-sm bg-amber-500/10 text-amber-700 py-3 rounded-xl font-bold border border-amber-500/20 shadow-sm animate-in zoom-in duration-500">
                 <Medal className="w-5 h-5 text-amber-600" />
                 <span>Badge Fiable obtenu</span>
+              </div>
+            ) : (
+              <div className="mt-6 p-5 bg-muted/20 border border-dashed border-border rounded-2xl space-y-3">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+                    <Medal className="w-3.5 h-3.5" /> Objectif Badge Fiable
+                  </p>
+                  <span className="text-[10px] font-bold text-primary px-2 py-0.5 bg-primary/10 rounded-full">En cours</span>
+                </div>
+                
+                <div className="space-y-2">
+                  <div className="flex justify-between text-[10px] font-bold uppercase tracking-tighter">
+                    <span className={profile.sessionsCompleted >= 5 ? "text-emerald-500" : "text-muted-foreground"}>
+                      Sessions: {profile.sessionsCompleted}/5
+                    </span>
+                    <span className={Number(profile.avgRating || 0) >= 4 ? "text-emerald-500" : "text-muted-foreground"}>
+                      Note: {profile.avgRating ? Number(profile.avgRating).toFixed(1) : '—'}/4.0
+                    </span>
+                  </div>
+                  <div className="w-full bg-muted h-1.5 rounded-full overflow-hidden">
+                    <div 
+                      className="bg-primary h-full transition-all duration-1000" 
+                      style={{ width: `${Math.min(100, (profile.sessionsCompleted / 5) * 100)}%` }} 
+                    />
+                  </div>
+                </div>
+                <p className="text-[9px] text-muted-foreground leading-tight italic">
+                  Terminez 5 sessions avec une moyenne de 4.0 pour obtenir ce badge.
+                </p>
               </div>
             )}
           </section>
@@ -766,6 +869,30 @@ export default function ProfilePage() {
           </section>
         </div>
       </div>
+
+      {/* Reviews Section */}
+      <section className="space-y-6">
+        <div className="flex items-center justify-between px-2">
+          <h2 className="text-xl font-black uppercase tracking-widest flex items-center gap-3">
+            <Star className="w-6 h-6 text-amber-500 fill-amber-500" />
+            Avis reçus <span className="text-muted-foreground font-medium ml-1">({reviews.length})</span>
+          </h2>
+        </div>
+
+        {reviews.length === 0 ? (
+          <div className="p-16 text-center bg-card border border-border rounded-[2.5rem] shadow-sm">
+            <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mx-auto mb-6">
+              <Star className="w-8 h-8 text-muted-foreground/30" />
+            </div>
+            <p className="text-lg font-bold text-muted-foreground uppercase tracking-widest">Aucun avis pour l'instant</p>
+            <p className="text-sm text-muted-foreground mt-2">Participez à des sessions pour recevoir vos premières évaluations !</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {reviews.map((r) => <ReviewCard key={r.id} review={r} />)}
+          </div>
+        )}
+      </section>
 
     </div>
   );

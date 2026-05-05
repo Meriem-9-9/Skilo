@@ -301,9 +301,9 @@ model Session {
   cancelledById        String?         @db.Uuid
   cancellationReason   String?         @db.VarChar(200)
   /// TRUE quand proposed_by_id confirme que la session a eu lieu
-  confirmedByA         Boolean         @default(false)
+  confirmedByA         Boolean?
   /// TRUE quand recipient_id confirme que la session a eu lieu
-  confirmedByB         Boolean         @default(false)
+  confirmedByB         Boolean?
   /// scheduled_at + 24h — déclencheur de l'auto_completed
   confirmationDeadline DateTime?       @db.Timestamptz() // ! zakariae : on doit comprendre l'utilite de ce attribut
   /// Nombre de crédits débités pour cette session (0 pour match parfait)

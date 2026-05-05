@@ -6,12 +6,11 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { AddSkillDto, UpdateSkillLevelDto } from './dto/skill.dto'; // ← was missing
+import { AddSkillDto, UpdateSkillLevelDto } from './dto/skill.dto';
 import { SkillType } from '@prisma/client';
 import { MatchingService } from '../matching/matching.service';
-// SkillsService removed — UsersService handles skill ops directly via Prisma
 
-// Fields we NEVER return in any response
+// Fields to select from the user
 const USER_PUBLIC_SELECT = {
   id: true,
   firstName: true,
@@ -28,7 +27,6 @@ const USER_PUBLIC_SELECT = {
   profileScore: true,
   isOnboarded: true,
   createdAt: true,
-  // NEVER: passwordHash, creditBalance, email (public), lastLoginAt
 };
 
 const SKILL_SELECT = {
@@ -45,16 +43,16 @@ export class UsersService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly matchingService: MatchingService,
-  ) {}
+  ) { }
 
-  // ─── GET /users/me ────────────────────────────────────────────────────────
+  // ─── GET /users/me
   async getMe(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {
         ...USER_PUBLIC_SELECT,
-        email: true, // own profile = email visible
-        creditBalance: true, // own profile = credits visible
+        email: true,
+        creditBalance: true,
         creditReserved: true,
         skills: { select: SKILL_SELECT },
       },
@@ -68,7 +66,7 @@ export class UsersService {
     };
   }
 
-  // ─── PATCH /users/me ──────────────────────────────────────────────────────
+  // ─── PATCH /users/me
   async updateMe(userId: string, dto: UpdateProfileDto) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
@@ -78,7 +76,6 @@ export class UsersService {
       data: {
         ...(dto.firstName && { firstName: dto.firstName }),
         ...(dto.lastName && { lastName: dto.lastName }),
-        // Allow clearing bio/avatar/city by sending null — use ?? to keep undefined as "no change"
         ...(dto.city !== undefined && { city: dto.city }),
         ...(dto.bio !== undefined && { bio: dto.bio }),
         ...(dto.avatarUrl !== undefined && { avatarUrl: dto.avatarUrl }),
@@ -95,7 +92,7 @@ export class UsersService {
     // Recalculate profile strength score
     const strength = this.calculateStrength(updated);
 
-    // If the user just hit 100 for the first time → award +1 profile bonus credit (FC-02-04)
+    // If the user just hit 100 for the first time → award +1 profile bonus credit
     if (strength.score === 100 && user.profileScore < 100) {
       await this.prisma.$transaction([
         this.prisma.user.update({
@@ -240,7 +237,7 @@ export class UsersService {
       );
     }
 
-    // Verify skill exists in catalog
+    // verify skill exists in catalog
     const skill = await this.prisma.skillCatalog.findFirst({
       where: {
         id: dto.skillId,
@@ -356,7 +353,7 @@ export class UsersService {
     return { message: 'Compétence supprimée.' };
   }
 
-  // ─── Profile strength (FC-02-04) ─────────────────────────────────────────
+  // ─── Profile strength (FC-02-04) 
   // Called internally — not exposed as a route
   calculateStrength(user: {
     avatarUrl?: string | null;
@@ -408,7 +405,7 @@ export class UsersService {
     return { score, label, nextAction };
   }
 
-  // ─── Private: resolve action button for public profile ───────────────────
+  // ─── Private: resolve action button for public profile
   private async resolveActionButton(currentUserId: string, targetId: string) {
     // Check if there's an active session between the two
     const activeSession = await this.prisma.session.findFirst({

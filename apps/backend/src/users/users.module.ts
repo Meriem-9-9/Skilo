@@ -7,9 +7,9 @@ import { SkillsService } from '../skills/skills.service';
 import { MatchingModule } from '../matching/matching.module';
 
 @Module({
-  imports: [AuthModule, MatchingModule], // provides JwtGuard + JwtModule
+  imports: [AuthModule, MatchingModule],
   controllers: [UsersController],
   providers: [UsersService, SkillsService, PrismaService],
-  exports: [UsersService], // exported so MatchingService can call calculateStrength later
+  exports: [UsersService],
 })
 export class UsersModule {}

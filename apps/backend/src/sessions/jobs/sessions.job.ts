@@ -80,9 +80,9 @@ export class SessionsJob {
         scheduledAt: { lt: new Date() }, // session has passed
         updatedAt: { lt: deadline }, // no update in 24h
         OR: [
-          // One confirmed yes, other hasn't answered yet (still default false)
-          { confirmedByA: true, confirmedByB: false },
-          { confirmedByA: false, confirmedByB: true },
+          // One confirmed yes, other hasn't answered yet (null)
+          { confirmedByA: true, confirmedByB: null },
+          { confirmedByA: null, confirmedByB: true },
         ],
       },
       select: {
