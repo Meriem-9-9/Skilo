@@ -426,11 +426,12 @@ export const sessionsApi = {
     meetingLink?: string;
   }) => post<Session>('/sessions', data),
 
-  list: (params?: { tab?: 'upcoming' | 'past'; page?: number; limit?: number }) => {
+  list: (params?: { tab?: 'upcoming' | 'past'; page?: number; limit?: number; status?: string }) => {
     const qs = new URLSearchParams();
     if (params?.tab) qs.set('tab', params.tab);
     if (params?.page) qs.set('page', String(params.page));
     if (params?.limit) qs.set('limit', String(params.limit));
+    if (params?.status) qs.set('status', params.status);
     return get<PaginatedResponse<Session>>(`/sessions?${qs}`);
   },
 

@@ -51,7 +51,9 @@ export class MatchingService {
     const blockedUserIds = await this.getBlockedUserIds(userId);
 
     for (const userB of candidates) {
-      if (blockedUserIds.has(userB.id)) continue;
+      // We no longer skip blocked users (those with active sessions) 
+      // because we want to allow multiple sessions (up to 3) with the same person.
+      // if (blockedUserIds.has(userB.id)) continue;
 
       const { offered: bOffered, wanted: bWanted } = this.splitSkills(
         userB.skills,

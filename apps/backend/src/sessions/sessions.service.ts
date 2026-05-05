@@ -3,6 +3,7 @@ import {
   ConflictException,
   ForbiddenException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
@@ -43,8 +44,10 @@ export class SessionsService {
     const creditsNeeded = CreditsService.creditsForDuration(dto.duration);
     const isCreditBased = match.type === 'partial';
 
+    let reservationTransactionId: string | null = null;
     if (isCreditBased) {
-      await this.creditsService.reserve(initiatorId, creditsNeeded, 'pending');
+      const tx = await this.creditsService.reserve(initiatorId, creditsNeeded);
+      reservationTransactionId = tx.id;
     }
 
     const offeredSkill = dto.offeredSkillId 
@@ -94,9 +97,9 @@ export class SessionsService {
       (session as any).meetingLink = generatedLink;
     }
 
-    if (isCreditBased) {
-      await this.prisma.creditTransaction.updateMany({
-        where: { userId: initiatorId, sessionId: 'pending' },
+    if (reservationTransactionId) {
+      await this.prisma.creditTransaction.update({
+        where: { id: reservationTransactionId },
         data: { sessionId: session.id },
       });
     }
@@ -152,7 +155,10 @@ export class SessionsService {
     }
   }
 
+  private readonly logger = new Logger(SessionsService.name);
+
   private async getActiveMatchOrThrow(userAId: string, userBId: string) {
+    this.logger.debug(`Searching active match between ${userAId} and ${userBId}`);
     const match = await this.prisma.match.findFirst({
       where: {
         status: 'active',
@@ -162,7 +168,23 @@ export class SessionsService {
         ],
       },
     });
+
     if (!match) {
+      this.logger.warn(`No active match found for users ${userAId} and ${userBId}. Checking if match exists at all...`);
+      const anyMatch = await this.prisma.match.findFirst({
+        where: {
+          OR: [
+            { userAId, userBId },
+            { userAId: userBId, userBId: userAId },
+          ],
+        },
+      });
+      if (anyMatch) {
+        this.logger.warn(`Found match ${anyMatch.id} but status is ${anyMatch.status}`);
+      } else {
+        this.logger.error(`No match record at all between ${userAId} and ${userBId}`);
+      }
+
       throw new BadRequestException(
         'Aucun match actif trouvé avec cet utilisateur.',
       );
@@ -424,10 +446,29 @@ export class SessionsService {
     const skip = (page - 1) * limit;
     const now = new Date();
 
-    const where = {
-      OR: [{ proposedById: userId }, { recipientId: userId }],
-      scheduledAt: filters.tab === 'upcoming' ? { gte: now } : { lt: now },
+    const where: any = {
+      AND: [
+        { OR: [{ proposedById: userId }, { recipientId: userId }] }
+      ]
     };
+
+    if (filters.tab === 'upcoming') {
+      where.AND.push({
+        scheduledAt: { gte: now },
+        status: { in: ['pending', 'confirmed'] }
+      });
+    } else {
+      where.AND.push({
+        OR: [
+          { scheduledAt: { lt: now } },
+          { status: { in: ['completed', 'cancelled', 'disputed', 'auto_completed'] } }
+        ]
+      });
+    }
+
+    if (filters.status) {
+      where.status = filters.status;
+    }
 
     const [sessions, total] = await this.prisma.$transaction([
       this.prisma.session.findMany({

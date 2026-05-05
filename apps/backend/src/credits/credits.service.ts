@@ -7,10 +7,7 @@ const CREDIT_CAP = 20;
 export class CreditsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // ─── reserve(userId, amount, sessionId) ───────────────────────────────────
-  // Called when a session is PROPOSED (not yet accepted).
-  // Moves credits to "reserved" — still counted in balance but marked as blocked.
-  async reserve(userId: string, amount: number, sessionId: string) {
+  async reserve(userId: string, amount: number, sessionId?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { creditBalance: true, creditReserved: true },
@@ -26,7 +23,7 @@ export class CreditsService {
     }
 
     // Move amount from available → reserved
-    await this.prisma.$transaction([
+    const [_, transaction] = await this.prisma.$transaction([
       this.prisma.user.update({
         where: { id: userId },
         data: { creditReserved: { increment: amount } },
@@ -34,7 +31,7 @@ export class CreditsService {
       this.prisma.creditTransaction.create({
         data: {
           userId,
-          sessionId,
+          sessionId: (sessionId === 'pending' || !sessionId) ? null : sessionId,
           type: 'session_reserved',
           amount: -amount, // negative = going out
           balanceAfter: user.creditBalance, // balance unchanged yet
@@ -42,6 +39,8 @@ export class CreditsService {
         },
       }),
     ]);
+
+    return transaction;
   }
 
   // ─── debit(userId, amount, sessionId) ────────────────────────────────────

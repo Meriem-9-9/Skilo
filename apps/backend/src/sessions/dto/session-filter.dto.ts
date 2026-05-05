@@ -15,6 +15,11 @@ export class SessionFilterDto {
   tab?: 'upcoming' | 'past' = 'upcoming';
 
   @IsOptional()
+  @IsString()
+  @IsIn(['pending', 'confirmed', 'completed', 'cancelled', 'disputed', 'auto_completed'])
+  status?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsInt()
   @Min(1)
