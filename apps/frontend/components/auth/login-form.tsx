@@ -53,12 +53,7 @@ export function LoginForm() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center">Welcome back</CardTitle>
-        <CardDescription className="text-center">
-          Sign in to continue your skill exchanges
-        </CardDescription>
-      </CardHeader>
+
 
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
@@ -79,10 +74,7 @@ export function LoginForm() {
 
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <Label htmlFor="login-password">Password</Label>
-              <a href="#" className="text-sm font-medium text-primary hover:underline">
-                Forgot password?
-              </a>
+              <Label htmlFor="login-password">Mot de passe</Label>
             </div>
             <div className="relative">
               <Input
@@ -111,12 +103,12 @@ export function LoginForm() {
 
         <CardFooter className="flex flex-col space-y-4 mt-2">
           <Button type="submit" className="w-full" disabled={isLoading}>
-            {isLoading ? 'Signing in…' : 'Sign In'}
+            {isLoading ? 'Connexion en cours…' : 'Se connecter'}
           </Button>
           <p className="text-center text-sm text-muted-foreground">
-            Don&apos;t have an account?{' '}
+            Vous n&apos;avez pas de compte ?{' '}
             <Link href="/register" className="font-medium text-primary hover:underline">
-              Sign up
+              S&apos;inscrire
             </Link>
           </p>
         </CardFooter>

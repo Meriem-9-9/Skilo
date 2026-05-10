@@ -132,6 +132,24 @@
   .premium-card {
     @apply relative overflow-hidden bg-gradient-to-br from-card to-card/50 border border-border shadow-sm hover:shadow-md transition-all duration-300;
   }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(2deg); }
+    50% { transform: translateY(-20px) rotate(3deg); }
+  }
+
+  @keyframes pulse-slow {
+    0%, 100% { opacity: 0.8; transform: scale(1); }
+    50% { opacity: 1; transform: scale(1.02); }
+  }
+
+  .animate-float {
+    animation: float 6s ease-in-out infinite;
+  }
+
+  .animate-pulse-slow {
+    animation: pulse-slow 4s ease-in-out infinite;
+  }
 }
 
 @layer base {
@@ -185,3 +203,11 @@
     scrollbar-color: oklch(1 0 0 / 15%) transparent;
   }
 }
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: oklch(0.5 0.02 275 / 30%) transparent;
+  }
+
+  .dark * {
+    scrollbar-color: oklch(1 0 0 / 15%) transparent;
+  }

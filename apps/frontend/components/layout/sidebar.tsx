@@ -33,8 +33,9 @@ export function Sidebar({ open, onClose }: { open: boolean; onClose: () => void 
       `}>
         {/* Logo */}
         <div className="h-16 flex items-center px-6 border-b border-border shrink-0">
-          <span className="text-xl font-bold tracking-tight text-foreground">skilo</span>
-          <span className="ml-1 text-primary text-xl font-bold">.</span>
+          <Link href="/dashboard" className="text-xl font-black tracking-tighter text-foreground hover:opacity-80 transition-opacity">
+            skilo<span className="text-primary">.</span>
+          </Link>
         </div>
 
         {/* Nav */}

@@ -1,3 +1,5 @@
+import Link from 'next/link';
+
 export default function AuthLayout({
   children,
 }: {
@@ -8,8 +10,12 @@ export default function AuthLayout({
       <div className="w-full max-w-md">
         {/* Logo / branding */}
         <div className="mb-8 text-center">
-          <h1 className="text-3xl font-bold tracking-tight">Skilo</h1>
-          <p className="text-muted-foreground text-sm mt-1">Welcome back 👋</p>
+          <Link href="/" className="inline-block hover:opacity-80 transition-opacity">
+            <h1 className="text-4xl font-black tracking-tighter text-white">
+              skilo<span className="text-primary">.</span>
+            </h1>
+          </Link>
+          <p className="text-muted-foreground text-sm mt-1">Ravi de vous revoir</p>
         </div>
         {children}
       </div>

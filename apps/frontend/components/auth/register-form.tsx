@@ -76,12 +76,7 @@ export function RegisterForm() {
 
   return (
     <Card>
-      <CardHeader>
-        <CardTitle className="text-2xl font-bold text-center">Créer votre compte</CardTitle>
-        <CardDescription className="text-center">
-          Rejoignez skilo — enseignez ce que vous savez, apprenez ce que vous voulez
-        </CardDescription>
-      </CardHeader>
+
 
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">

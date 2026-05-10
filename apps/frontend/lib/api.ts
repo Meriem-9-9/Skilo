@@ -1,6 +1,6 @@
 
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:2006';
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL;
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -208,7 +208,7 @@ async function request<T>(
   if (body && !isFormData) {
     headers['Content-Type'] = 'application/json';
   }
-
+  // fetch(url,{methode,header,option,body})
   const res = await fetch(`${BASE_URL}${path}`, {
     method,
     headers,
