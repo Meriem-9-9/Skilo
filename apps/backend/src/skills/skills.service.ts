@@ -11,9 +11,7 @@ import { SkillStatus } from '@prisma/client';
 export class SkillsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // ─── GET /skills/search?q= ────────────────────────────────────────────────
-  // Any authenticated user — used by onboarding, profile edit, autocomplete
-  // Returns top 10 approved skills sorted by usageCount (most used first)
+  // GET /skills/search
   async search(q?: string) {
     if (!q || q.trim().length === 0) {
       // No query → return top 100 approved skills sorted by usageCount then name
@@ -33,7 +31,7 @@ export class SkillsService {
 
     const term = q.trim();
 
-    // Search by name (case-insensitive) OR aliases array contains the term
+    // recherche par nom  ou par alias 
     return this.prisma.skillCatalog.findMany({
       where: {
         status: 'approved',
@@ -54,7 +52,7 @@ export class SkillsService {
     });
   }
 
-  // ─── GET /skills (paginated full list — admin) ────────────────────────────
+  // GET /skills
   async findAll(status?: string, page = 1, limit = 20) {
     const skip = (page - 1) * limit;
 
@@ -88,15 +86,12 @@ export class SkillsService {
     };
   }
 
-  // ─── GET /skills/pending (admin shortcut) ─────────────────────────────────
-  // Skills waiting for review — most recent first
+  // GET /skills/pending
   async findPending(page = 1, limit = 20) {
     return this.findAll('pending_review', page, limit);
   }
 
-  // ─── POST /skills ─────────────────────────────────────────────────────────
-  // Any authenticated user — creates with status pending_review
-  // If the skill already exists (approved or pending) → return it instead of duplicating
+  // POST /skills
   async create(dto: CreateSkillDto, createdById: string) {
     // Case-insensitive duplicate check
     const existing = await this.prisma.skillCatalog.findFirst({
@@ -106,7 +101,7 @@ export class SkillsService {
 
     if (existing) {
       return {
-        message: 'Cette compétence existe déjà.',
+        message: 'cette competence existe deja',
         alreadyExists: true,
         skill: existing,
       };
@@ -131,18 +126,18 @@ export class SkillsService {
 
     return {
       message:
-        'Compétence soumise pour validation. Elle sera disponible après revue par un administrateur.',
+        'competence soumise pour validation',
       alreadyExists: false,
       skill,
     };
   }
 
-  // ─── PATCH /skills/:id/approve (admin only) ───────────────────────────────
+  // PATCH /skills/:id/approve
   async approve(skillId: string) {
     const skill = await this.findByIdOrThrow(skillId);
 
     if (skill.status === 'approved') {
-      throw new BadRequestException('This skill is already approved.');
+      throw new BadRequestException('deja approuvee');
     }
 
     const updated = await this.prisma.skillCatalog.update({
@@ -152,12 +147,12 @@ export class SkillsService {
     });
 
     return {
-      message: `Compétence "${updated.name}" approuvée avec succès.`,
+      message: `competence "${updated.name}" approuvee`,
       skill: updated,
     };
   }
 
-  // ─── PATCH /skills/:id/reject (admin only) ────────────────────────────────
+  // PATCH /skills/:id/reject
   async reject(skillId: string, reason?: string) {
     const skill = await this.findByIdOrThrow(skillId);
 
@@ -172,15 +167,13 @@ export class SkillsService {
     });
 
     return {
-      message: `Compétence "${updated.name}" rejetée.`,
+      message: `competence "${updated.name}" rejetee`,
       reason: reason ?? null,
       skill: updated,
     };
   }
 
-  // ─── PATCH /skills/:id/aliases (admin only) ───────────────────────────────
-  // Admin can add aliases to improve autocomplete matching
-  // e.g. add "JS" and "ECMAScript" to the JavaScript skill
+  // PATCH /skills/:id/aliases
   async updateAliases(skillId: string, aliases: string[]) {
     await this.findByIdOrThrow(skillId);
 
@@ -202,7 +195,7 @@ export class SkillsService {
       where: { id: skillId },
       select: { id: true, name: true, status: true },
     });
-    if (!skill) throw new NotFoundException('Skill not found');
+    if (!skill) throw new NotFoundException('competence non trouvee');
     return skill;
   }
 }

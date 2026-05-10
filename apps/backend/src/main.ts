@@ -3,14 +3,10 @@ import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
 import cookieParser from 'cookie-parser';
 import { NestExpressApplication } from '@nestjs/platform-express';
-import { join } from 'path';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
-  app.useStaticAssets(join(process.cwd(), 'Upload'), {
-    prefix: '/upload/', // Allows fetching local files like http://localhost:2006/upload/filename
-  });
   const port = process.env.PORT ?? 2006;
   if (!process.env.DATABASE_URL) {
     throw new Error('DATABASE_URL is not defined');
@@ -22,7 +18,6 @@ async function bootstrap() {
 
   if (!process.env.JWT_SECRET) {
     throw new Error('JWT_SECRET is not defined');
-    
   }
 
   if (!process.env.JWT_REFRESH_SECRET) {
@@ -30,7 +25,7 @@ async function bootstrap() {
   }
 
   app.enableCors({
-    origin: [process.env.FRONTEND_URL, 'http://localhost:3000'], // URL de ton frontend
+    origin: [process.env.FRONTEND_URL],
     credentials: true,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
   });

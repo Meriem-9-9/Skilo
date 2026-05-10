@@ -23,7 +23,7 @@ import { CreateSkillDto } from './dto/create-skill.dto';
 import { RequestWithUser } from '../auth/types/request-with-user.type';
 import { SkillsService } from '../skills/skills.service';
 
-@UseGuards(JwtGuard) // All routes here require authentication
+@UseGuards(JwtGuard)
 @Controller()
 export class UsersController {
   constructor(
@@ -31,32 +31,33 @@ export class UsersController {
     private readonly skillsService: SkillsService,
   ) {}
 
-  // ── Own profile ───────────────────────────────────────────────────────────
-
+  // GET /users/me
   @Get('users/me')
   getMe(@Request() req: RequestWithUser) {
     return this.usersService.getMe(req.user.sub);
   }
 
+  // PATCH /users/me
   @Patch('users/me')
   updateMe(@Body() dto: UpdateProfileDto, @Request() req: RequestWithUser) {
     return this.usersService.updateMe(req.user.sub, dto);
   }
 
+  // DELETE /users/me
   @Delete('users/me')
   @HttpCode(HttpStatus.OK)
   deleteMe(@Request() req: RequestWithUser) {
     return this.usersService.deleteMe(req.user.sub);
   }
 
-  // ── Skills management ─────────────────────────────────────────────────────
-
+  // POST /users/me/skills
   @Post('users/me/skills')
   @HttpCode(HttpStatus.CREATED)
   addSkill(@Body() dto: AddSkillDto, @Request() req: RequestWithUser) {
     return this.usersService.addSkill(req.user.sub, dto);
   }
 
+  // PATCH /users/me/skills/:id
   @Patch('users/me/skills/:userSkillId')
   updateSkillLevel(
     @Param('userSkillId', ParseUUIDPipe) userSkillId: string,
@@ -66,6 +67,7 @@ export class UsersController {
     return this.usersService.updateSkillLevel(req.user.sub, userSkillId, dto);
   }
 
+  // DELETE /users/me/skills/:id
   @Delete('users/me/skills/:userSkillId')
   @HttpCode(HttpStatus.OK)
   removeSkill(
@@ -75,8 +77,7 @@ export class UsersController {
     return this.usersService.removeSkill(req.user.sub, userSkillId);
   }
 
-  // ── Public profiles ───────────────────────────────────────────────────────
-
+  // GET /users
   @Get('users')
   listUsers(
     @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
@@ -85,7 +86,7 @@ export class UsersController {
     return this.usersService.listUsers(page, limit);
   }
 
-  // ⚠ /users/me must come before /users/:id so NestJS doesn't treat "me" as a UUID
+  // GET /users/:id
   @Get('users/:id')
   getPublicProfile(
     @Param('id', ParseUUIDPipe) id: string,
@@ -94,13 +95,13 @@ export class UsersController {
     return this.usersService.getPublicProfile(id, req.user.sub);
   }
 
-  // ── Skills catalog ────────────────────────────────────────────────────────
-
+  // GET /skills/search
   @Get('skills/search')
   searchSkills(@Query('q') q: string) {
     return this.skillsService.search(q);
   }
 
+  // POST /skills
   @Post('skills')
   @HttpCode(HttpStatus.CREATED)
   createSkill(@Body() dto: CreateSkillDto, @Request() req: RequestWithUser) {

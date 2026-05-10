@@ -16,15 +16,15 @@ export class UploadService {
   uploadFile(file: Express.Multer.File): Promise<any> {
     return new Promise((resolve, reject) => {
       if (!file) {
-        return reject(new BadRequestException('No file provided'));
+        return reject(new BadRequestException('aucun fichier fourni'));
       }
 
       const uploadStream = cloudinary.uploader.upload_stream(
-        { folder: 'skilo/avatars' }, // Optional: you can choose another folder name
+        { folder: 'skilo/avatars' },
         (error, result) => {
           if (error) {
             return reject(
-              new BadRequestException('Error uploading file to Cloudinary'),
+              new BadRequestException('erreur lors de l\'upload sur cloudinary'),
             );
           }
           resolve(result);

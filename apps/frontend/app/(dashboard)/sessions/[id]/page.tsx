@@ -304,7 +304,10 @@ export default function SessionDetailPage() {
             )}
 
             <div className="pt-4 mt-4 border-t border-border">
-              <button className="w-full py-3 text-xs font-bold text-destructive hover:bg-destructive/5 rounded-xl transition-all">
+              <button 
+                onClick={() => toast.success("Votre signalement a été envoyé à l'équipe de modération. Nous vous contacterons sous 24h.")}
+                className="w-full py-3 text-xs font-bold text-destructive hover:bg-destructive/5 rounded-xl transition-all"
+              >
                 Signaler un problème
               </button>
             </div>

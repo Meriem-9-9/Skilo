@@ -1,9 +1,4 @@
-// ============================================================
-// skilo — API client
-// Base URL: http://localhost:2006
-// All requests include Authorization: Bearer <token> from memory
-// Refresh is handled by the auth context (401 → POST /auth/refresh)
-// ============================================================
+
 
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:2006';
 

@@ -5,11 +5,9 @@ import { PrismaService } from '../prisma/prisma.service';
 import { AuthModule } from '../auth/auth.module';
 
 @Module({
-  imports: [
-    AuthModule, // provides JwtGuard + RolesGuard dependencies
-  ],
+  imports: [AuthModule],
   controllers: [SkillsController],
   providers: [SkillsService, PrismaService],
-  exports: [SkillsService], // ← UsersModule, OnboardingModule, MatchingModule all need this
+  exports: [SkillsService],
 })
 export class SkillsModule {}

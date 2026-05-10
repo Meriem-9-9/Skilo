@@ -14,8 +14,16 @@ import { DeclineCancelDto, SessionFilterDto } from './dto/session-filter.dto';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { NotificationType } from '@prisma/client';
 
-// Shared select for the "other user" in a session card
-const SESSION_USER_SELECT = { id: true, firstName: true, lastName: true, avatarUrl: true, city: true, avgRating: true, sessionsCompleted: true };
+// selection des infos de l'autre utilisateur pour les cartes de session
+const SESSION_USER_SELECT = {
+  id: true,
+  firstName: true,
+  lastName: true,
+  avatarUrl: true,
+  city: true,
+  avgRating: true,
+  sessionsCompleted: true,
+};
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 const SESSION_SKILL_SELECT = { id: true, name: true, category: true };
@@ -27,10 +35,8 @@ export class SessionsService {
     private readonly creditsService: CreditsService,
   ) {}
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // POST /sessions — propose a session
-  // ══════════════════════════════════════════════════════════════════════════
-  async propose(initiatorId: string, dto: ProposeSessionDto) {
+    // POST /sessions — propose a session
+    async propose(initiatorId: string, dto: ProposeSessionDto) {
     const scheduledAt = new Date(dto.scheduledAt);
 
     this.validateSessionDate(scheduledAt);
@@ -50,11 +56,15 @@ export class SessionsService {
       reservationTransactionId = tx.id;
     }
 
-    const offeredSkill = dto.offeredSkillId 
-      ? await this.prisma.skillCatalog.findUnique({ where: { id: dto.offeredSkillId } })
+    const offeredSkill = dto.offeredSkillId
+      ? await this.prisma.skillCatalog.findUnique({
+          where: { id: dto.offeredSkillId },
+        })
       : null;
-    const wantedSkill = dto.wantedSkillId 
-      ? await this.prisma.skillCatalog.findUnique({ where: { id: dto.wantedSkillId } })
+    const wantedSkill = dto.wantedSkillId
+      ? await this.prisma.skillCatalog.findUnique({
+          where: { id: dto.wantedSkillId },
+        })
       : null;
 
     const session = await this.prisma.session.create({
@@ -65,10 +75,10 @@ export class SessionsService {
         scheduledAt,
         durationMinutes: dto.duration,
         skillsExchanged: [
-          { 
-            offeredSkillName: offeredSkill?.name ?? 'Compétence', 
-            wantedSkillName: wantedSkill?.name ?? 'Compétence' 
-          }
+          {
+            offeredSkillName: offeredSkill?.name ?? 'Compétence',
+            wantedSkillName: wantedSkill?.name ?? 'Compétence',
+          },
         ],
         message: dto.message ?? null,
         meetingLink: dto.meetingLink ?? null,
@@ -87,7 +97,7 @@ export class SessionsService {
       },
     });
 
-    // Generate meeting link if not provided
+    // on genere un lien si besoin
     if (!session.meetingLink) {
       const generatedLink = `https://meet.ffmuc.net/skilo-${session.id}`;
       await this.prisma.session.update({
@@ -109,19 +119,17 @@ export class SessionsService {
       initiatorId,
       session.id,
       'session_proposed',
-      { 
+      {
         scheduledAt: scheduledAt.toISOString(),
-        body: "Vous avez reçu une nouvelle demande de session d'échange." 
+        body: "Vous avez reçu une nouvelle demande de session d'échange.",
       },
     );
 
-    return { message: 'Session proposée avec succès.', session };
+    return { message: 'Session proposee avec succes.', session };
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // Validation Helpers
-  // ══════════════════════════════════════════════════════════════════════════
-  private validateSessionDate(scheduledAt: Date) {
+    // Validation Helpers
+    private validateSessionDate(scheduledAt: Date) {
     const now = new Date();
     const minDate = new Date(now.getTime() + 2 * 60 * 60 * 1000);
     if (scheduledAt < minDate) {
@@ -150,7 +158,7 @@ export class SessionsService {
 
     if (activeCount >= 3) {
       throw new ConflictException(
-        'Vous avez déjà 3 sessions actives avec cet utilisateur. Veuillez en terminer une avant d\'en proposer une nouvelle.',
+        "Vous avez déjà 3 sessions actives avec cet utilisateur. Veuillez en terminer une avant d'en proposer une nouvelle.",
       );
     }
   }
@@ -158,7 +166,9 @@ export class SessionsService {
   private readonly logger = new Logger(SessionsService.name);
 
   private async getActiveMatchOrThrow(userAId: string, userBId: string) {
-    this.logger.debug(`Searching active match between ${userAId} and ${userBId}`);
+    this.logger.debug(
+      `Searching active match between ${userAId} and ${userBId}`,
+    );
     const match = await this.prisma.match.findFirst({
       where: {
         status: 'active',
@@ -170,7 +180,9 @@ export class SessionsService {
     });
 
     if (!match) {
-      this.logger.warn(`No active match found for users ${userAId} and ${userBId}. Checking if match exists at all...`);
+      this.logger.warn(
+        `No active match found for users ${userAId} and ${userBId}. Checking if match exists at all...`,
+      );
       const anyMatch = await this.prisma.match.findFirst({
         where: {
           OR: [
@@ -180,9 +192,13 @@ export class SessionsService {
         },
       });
       if (anyMatch) {
-        this.logger.warn(`Found match ${anyMatch.id} but status is ${anyMatch.status}`);
+        this.logger.warn(
+          `Found match ${anyMatch.id} but status is ${anyMatch.status}`,
+        );
       } else {
-        this.logger.error(`No match record at all between ${userAId} and ${userBId}`);
+        this.logger.error(
+          `No match record at all between ${userAId} and ${userBId}`,
+        );
       }
 
       throw new BadRequestException(
@@ -216,10 +232,8 @@ export class SessionsService {
     });
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // PATCH /sessions/:id/accept
-  // ══════════════════════════════════════════════════════════════════════════
-  async accept(sessionId: string, recipientId: string) {
+    // PATCH /sessions/:id/accept
+    async accept(sessionId: string, recipientId: string) {
     const session = await this.findSessionOrThrow(sessionId);
 
     if (session.recipientId !== recipientId) throw new ForbiddenException();
@@ -247,24 +261,24 @@ export class SessionsService {
       recipientId,
       sessionId,
       'session_accepted',
-      { 
+      {
         scheduledAt: session.scheduledAt.toISOString(),
-        body: "Votre demande de session a été acceptée !"
+        body: 'Votre demande de session a ete acceptee !',
       },
     );
 
-    return { message: 'Session acceptée.' };
+    return { message: 'Session acceptee.' };
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
   // PATCH /sessions/:id/decline
-  // ══════════════════════════════════════════════════════════════════════════
-  async decline(sessionId: string, recipientId: string, dto: DeclineCancelDto) {
+  async decline(sessionId: string, userId: string, dto: DeclineCancelDto) {
     const session = await this.findSessionOrThrow(sessionId);
 
-    if (session.recipientId !== recipientId) throw new ForbiddenException();
+    const isParticipant =
+      session.proposedById === userId || session.recipientId === userId;
+    if (!isParticipant) throw new ForbiddenException();
     if (session.status !== 'pending') {
-      throw new BadRequestException('Cette session ne peut plus être refusée.');
+      throw new BadRequestException('Cette session ne peut plus etre refusee.');
     }
 
     if (session.creditsUsed > 0) {
@@ -282,21 +296,19 @@ export class SessionsService {
 
     await this.notifyUser(
       session.proposedById,
-      recipientId,
+      userId,
       sessionId,
       'session_declined',
-      { 
+      {
         reason: dto.reason ?? null,
-        body: 'Votre demande de session a été déclinée.'
+        body: 'Votre demande de session a ete declinee.',
       },
     );
 
-    return { message: 'Session refusée.' };
+    return { message: 'Session refusee.' };
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
   // PATCH /sessions/:id/cancel
-  // ══════════════════════════════════════════════════════════════════════════
   async cancel(sessionId: string, userId: string, dto: DeclineCancelDto) {
     const session = await this.findSessionOrThrow(sessionId);
 
@@ -305,7 +317,7 @@ export class SessionsService {
     if (!isParticipant) throw new ForbiddenException();
 
     if (!['pending', 'confirmed'].includes(session.status)) {
-      throw new BadRequestException('Cette session ne peut plus être annulée.');
+      throw new BadRequestException('Cette session ne peut plus etre annulee.');
     }
 
     const twoHoursBefore = new Date(
@@ -341,37 +353,31 @@ export class SessionsService {
       data: {
         userId: otherUserId,
         type: 'session_cancelled',
-        payload: { 
-          sessionId, 
+        payload: {
+          sessionId,
           reason: dto.reason ?? null,
-          body: 'Une session planifiée a été annulée.'
+          body: 'session annulee',
         },
       },
     });
 
     return {
-      message: 'Session annulée.',
+      message: 'Session annulee.',
       warning: isLateCancel
         ? 'Annulation tardive (moins de 2h avant la session).'
         : null,
     };
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // PATCH /sessions/:id/confirm — both users confirm if it happened
-  // ══════════════════════════════════════════════════════════════════════════
+  // PATCH /sessions/:id/confirm
   async confirm(sessionId: string, userId: string, dto: ConfirmSessionDto) {
     const session = await this.findSessionOrThrow(sessionId);
 
     if (session.status !== 'confirmed') {
       throw new BadRequestException(
-        'La session doit être confirmée avant de pouvoir valider sa tenue.',
+        'La session doit etre confirmee avant de pouvoir valider sa tenue.',
       );
     }
-    // Allow manual completion even if before scheduledAt (negotiated in chat)
-    // if (session.scheduledAt > new Date()) {
-    //   throw new BadRequestException("La session n'a pas encore eu lieu.");
-    // }
 
     const isInitiator = session.proposedById === userId;
     const isRecipient = session.recipientId === userId;
@@ -434,12 +440,10 @@ export class SessionsService {
       }
     }
 
-    return { message: 'Confirmation enregistrée.' };
+    return { message: 'Confirmation enregistree.' };
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
   // GET /sessions
-  // ══════════════════════════════════════════════════════════════════════════
   async getMySessions(userId: string, filters: SessionFilterDto) {
     const page = filters.page ?? 1;
     const limit = filters.limit ?? 20;
@@ -447,22 +451,24 @@ export class SessionsService {
     const now = new Date();
 
     const where: any = {
-      AND: [
-        { OR: [{ proposedById: userId }, { recipientId: userId }] }
-      ]
+      AND: [{ OR: [{ proposedById: userId }, { recipientId: userId }] }],
     };
 
     if (filters.tab === 'upcoming') {
       where.AND.push({
         scheduledAt: { gte: now },
-        status: { in: ['pending', 'confirmed'] }
+        status: { in: ['pending', 'confirmed'] },
       });
     } else {
       where.AND.push({
         OR: [
           { scheduledAt: { lt: now } },
-          { status: { in: ['completed', 'cancelled', 'disputed', 'auto_completed'] } }
-        ]
+          {
+            status: {
+              in: ['completed', 'cancelled', 'disputed', 'auto_completed'],
+            },
+          },
+        ],
       });
     }
 
@@ -493,7 +499,6 @@ export class SessionsService {
 
     const shaped = sessions.map((s) => ({
       ...s,
-      // Keep proposedBy and recipient for the frontend
       proposedBy: s.proposedBy,
       recipient: s.recipient,
     }));
@@ -504,10 +509,8 @@ export class SessionsService {
     };
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
   // GET /sessions/:id
-  // ══════════════════════════════════════════════════════════════════════════
-  async getSessionById(sessionId: string, userId: string) {
+  async findOne(sessionId: string, userId: string) {
     const session = await this.prisma.session.findUnique({
       where: { id: sessionId },
       select: {
@@ -528,7 +531,7 @@ export class SessionsService {
       },
     });
 
-    if (!session) throw new NotFoundException('Session not found');
+    if (!session) throw new NotFoundException('Session non trouvee');
 
     const isParticipant =
       session.proposedBy.id === userId || session.recipient.id === userId;
@@ -537,9 +540,6 @@ export class SessionsService {
     return session;
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // INTERNAL — completeSession (called from confirm + cron jobs)
-  // ══════════════════════════════════════════════════════════════════════════
   async completeSession(
     sessionId: string,
     session: {
@@ -555,14 +555,16 @@ export class SessionsService {
       data: { status: isAutoCompleted ? 'auto_completed' : 'completed' },
     });
 
-    const creditsEarned = CreditsService.creditsForDuration(
-      session.durationMinutes,
-    );
-    await this.creditsService.credit(
-      session.recipientId,
-      creditsEarned,
-      sessionId,
-    );
+    if (session.creditsUsed > 0) {
+      const creditsEarned = CreditsService.creditsForDuration(
+        session.durationMinutes,
+      );
+      await this.creditsService.credit(
+        session.recipientId,
+        creditsEarned,
+        sessionId,
+      );
+    }
 
     await this.prisma.user.updateMany({
       where: { id: { in: [session.proposedById, session.recipientId] } },
@@ -574,24 +576,23 @@ export class SessionsService {
         {
           userId: session.proposedById,
           type: 'session_completed',
-          payload: { 
+          payload: {
             sessionId,
-            body: "Votre session d'échange est maintenant terminée. N'oubliez pas de laisser un avis !"
+            body: "Votre session d'echange est maintenant terminee. N'oubliez pas de laisser un avis !",
           },
         },
         {
           userId: session.recipientId,
           type: 'session_completed',
-          payload: { 
+          payload: {
             sessionId,
-            body: "Votre session d'échange est maintenant terminée. N'oubliez pas de laisser un avis !"
+            body: "Votre session d'echange est maintenant terminee. N'oubliez pas de laisser un avis !",
           },
         },
       ],
     });
   }
 
-  // ─── Private helper ───────────────────────────────────────────────────────
   private async findSessionOrThrow(sessionId: string) {
     const session = await this.prisma.session.findUnique({
       where: { id: sessionId },
@@ -607,16 +608,14 @@ export class SessionsService {
         confirmedByB: true,
       },
     });
-    if (!session) throw new NotFoundException('Session not found');
+    if (!session) throw new NotFoundException('session non trouvee');
     return session;
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
   // GET /sessions/:id/messages
-  // ══════════════════════════════════════════════════════════════════════════
   async getMessages(sessionId: string, userId: string) {
     const session = await this.findSessionOrThrow(sessionId);
-    
+
     if (session.proposedById !== userId && session.recipientId !== userId) {
       throw new ForbiddenException();
     }
@@ -631,18 +630,20 @@ export class SessionsService {
             firstName: true,
             lastName: true,
             avatarUrl: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     return messages;
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
   // POST /sessions/:id/messages
-  // ══════════════════════════════════════════════════════════════════════════
-  async createMessage(sessionId: string, userId: string, dto: CreateMessageDto) {
+  async createMessage(
+    sessionId: string,
+    userId: string,
+    dto: CreateMessageDto,
+  ) {
     const session = await this.findSessionOrThrow(sessionId);
 
     if (session.proposedById !== userId && session.recipientId !== userId) {
@@ -650,7 +651,9 @@ export class SessionsService {
     }
 
     if (!['pending', 'confirmed'].includes(session.status)) {
-      throw new BadRequestException('Vous ne pouvez envoyer des messages que dans les sessions en attente ou confirmées.');
+      throw new BadRequestException(
+        'Vous ne pouvez envoyer des messages que dans les sessions en attente ou confirmees.',
+      );
     }
 
     const message = await this.prisma.message.create({
@@ -668,9 +671,9 @@ export class SessionsService {
             firstName: true,
             lastName: true,
             avatarUrl: true,
-          }
-        }
-      }
+          },
+        },
+      },
     });
 
     return message;

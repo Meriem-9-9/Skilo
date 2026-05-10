@@ -7,6 +7,7 @@ const CREDIT_CAP = 20;
 export class CreditsService {
   constructor(private readonly prisma: PrismaService) {}
 
+  // reservation de credits
   async reserve(userId: string, amount: number, sessionId?: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -18,7 +19,7 @@ export class CreditsService {
 
     if (available < amount) {
       throw new BadRequestException(
-        `Vous n'avez pas assez de crédits. Il vous faut ${amount} crédit(s), vous en avez ${available}.`,
+        `pas assez de credits. il vous faut ${amount}, vous avez ${available}`,
       );
     }
 
@@ -35,7 +36,7 @@ export class CreditsService {
           type: 'session_reserved',
           amount: -amount, // negative = going out
           balanceAfter: user.creditBalance, // balance unchanged yet
-          description: `${amount} crédit(s) réservé(s) pour la session`,
+          description: `${amount} credit(s) reserve(s) pour la session`,
         },
       }),
     ]);
@@ -43,9 +44,7 @@ export class CreditsService {
     return transaction;
   }
 
-  // ─── debit(userId, amount, sessionId) ────────────────────────────────────
-  // Called when a session is ACCEPTED.
-  // Converts reserved → actually spent.
+  // debit de credits apres acceptation
   async debit(userId: string, amount: number, sessionId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -68,15 +67,13 @@ export class CreditsService {
           type: 'session_spent',
           amount: -amount,
           balanceAfter: newBalance,
-          description: `${amount} crédit(s) débité(s) pour la session`,
+          description: `${amount} credit(s) debite(s) pour la session`,
         },
       }),
     ]);
   }
 
-  // ─── credit(userId, amount, sessionId) ───────────────────────────────────
-  // Called when a session is COMPLETED — pays the teacher.
-  // Caps at 20 and warns if the user would lose credits (Q3 decision).
+  // ajout de credits apres session terminee
   async credit(
     userId: string, 
     amount: number, 
@@ -102,8 +99,8 @@ export class CreditsService {
           userId,
           type: 'credits_earned',
           payload: {
-            message: `Attention, votre solde atteint le plafond de ${CREDIT_CAP} crédits. ${surplus} crédit(s) seront perdus.`,
-            body: `Plafond atteint : ${surplus} crédit(s) non crédités`,
+            message: `attention, votre solde atteint le plafond de ${CREDIT_CAP} credits. ${surplus} seront perdus`,
+            body: `plafond atteint : ${surplus} non credites`,
             surplus,
           },
         },
@@ -122,7 +119,7 @@ export class CreditsService {
           type: type as any,
           amount: actualAmount,
           balanceAfter: newBalance,
-          description: customDescription ?? `${actualAmount} crédit(s) gagné(s) pour la session enseignée`,
+          description: customDescription ?? `${actualAmount} credit(s) gagne(s) pour la session`,
         },
       }),
     ]);
@@ -133,8 +130,8 @@ export class CreditsService {
         userId,
         type: 'credits_earned',
         payload: {
-          message: customDescription ? `Vous avez reçu ${actualAmount} crédit(s) : ${customDescription}` : `Vous avez gagné ${actualAmount} crédit(s) suite à votre session.`,
-          body: `Vous avez gagné ${actualAmount} crédit(s)`,
+          message: customDescription ? `vous avez recu ${actualAmount} : ${customDescription}` : `vous avez gagne ${actualAmount} suite a votre session`,
+          body: `vous avez gagne ${actualAmount} credits`,
           amount: actualAmount,
           sessionId: sessionId === 'none' ? null : sessionId,
         },
@@ -142,9 +139,7 @@ export class CreditsService {
     });
   }
 
-  // ─── refund(userId, amount, sessionId) ────────────────────────────────────
-  // Called when a credit-based session is CANCELLED or DECLINED.
-  // Releases reserved credits back to available.
+  // remboursement si session annulee
   async refund(userId: string, amount: number, sessionId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -167,7 +162,7 @@ export class CreditsService {
           type: 'session_released',
           amount, // positive = coming back
           balanceAfter: user.creditBalance,
-          description: `${amount} crédit(s) remboursé(s) suite à l'annulation`,
+          description: `${amount} credit(s) rembourse(s) suite a l'annulation`,
         },
       }),
     ]);
@@ -177,8 +172,8 @@ export class CreditsService {
         userId,
         type: 'credits_refunded',
         payload: {
-          message: `${amount} crédit(s) remboursé(s) suite à l'annulation de la session.`,
-          body: `${amount} crédit(s) remboursés`,
+          message: `${amount} credit(s) rembourse(s) suite a l'annulation`,
+          body: `${amount} credits rembourses`,
           amount,
           sessionId,
         },
@@ -186,7 +181,7 @@ export class CreditsService {
     });
   }
 
-  // ─── GET /credits/balance ─────────────────────────────────────────────────
+  // GET /credits/balance
   async getBalance(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -207,7 +202,7 @@ export class CreditsService {
     };
   }
 
-  // ─── GET /credits/history ─────────────────────────────────────────────────
+  // GET /credits/history
   async getHistory(userId: string, page = 1, limit = 20) {
     const skip = (page - 1) * limit;
 
@@ -243,8 +238,7 @@ export class CreditsService {
     };
   }
 
-  // ─── Internal helper — how many credits a session costs ───────────────────
-  // 1 credit per hour, rounded UP (spec FC-06-A)
+  // Calcul du nombre de credits necessaires pour une duree donnee (1 credit = 1 heure de cours)
   static creditsForDuration(durationMinutes: number): number {
     return Math.ceil(durationMinutes / 60);
   }

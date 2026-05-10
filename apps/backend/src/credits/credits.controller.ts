@@ -1,4 +1,3 @@
-// credits.controller.ts
 import {
   Controller,
   DefaultValuePipe,

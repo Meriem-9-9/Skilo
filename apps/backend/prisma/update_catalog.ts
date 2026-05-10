@@ -17,7 +17,7 @@ const NEW_SKILLS: { name: string; category: SkillCategory }[] = [
   { name: 'Solidity', category: 'tech' },
   { name: 'Go', category: 'tech' },
   { name: 'Rust', category: 'tech' },
-  
+
   // Languages
   { name: 'German', category: 'languages' },
   { name: 'Spanish', category: 'languages' },
@@ -27,7 +27,7 @@ const NEW_SKILLS: { name: string; category: SkillCategory }[] = [
   { name: 'Arabic', category: 'languages' },
   { name: 'Italian', category: 'languages' },
   { name: 'Portuguese', category: 'languages' },
-  
+
   // Arts & Design
   { name: 'Guitar', category: 'arts' },
   { name: 'Piano', category: 'arts' },
@@ -37,7 +37,7 @@ const NEW_SKILLS: { name: string; category: SkillCategory }[] = [
   { name: '3D Modeling', category: 'arts' },
   { name: 'Photography', category: 'arts' },
   { name: 'Calligraphy', category: 'arts' },
-  
+
   // Sport & Wellness
   { name: 'Yoga', category: 'sport' },
   { name: 'Crossfit', category: 'sport' },
@@ -46,7 +46,7 @@ const NEW_SKILLS: { name: string; category: SkillCategory }[] = [
   { name: 'Meditation', category: 'sport' },
   { name: 'Surfing', category: 'sport' },
   { name: 'Chess', category: 'sport' },
-  
+
   // Cooking
   { name: 'Pastry', category: 'cooking' },
   { name: 'Italian Cuisine', category: 'cooking' },
@@ -54,7 +54,7 @@ const NEW_SKILLS: { name: string; category: SkillCategory }[] = [
   { name: 'Baking', category: 'cooking' },
   { name: 'Vegan Cooking', category: 'cooking' },
   { name: 'Wine Tasting', category: 'cooking' },
-  
+
   // Business & Marketing
   { name: 'Public Speaking', category: 'business' },
   { name: 'SEO', category: 'business' },

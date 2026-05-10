@@ -2,42 +2,21 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { MatchFilterDto } from './dto/match-filter.dto';
 import { MatchType, SkillLevel } from '@prisma/client';
+import { UserSkill, PerfectPair, PartialMatch } from './matching.types';
 
-// ─── Level ordering for bonus calculation ─────────────────────────────────────
-// Used to check if the offered level is "one step above" the wanted level
 const LEVEL_ORDER: Record<SkillLevel, number> = {
   beginner: 0,
   intermediate: 1,
   advanced: 2,
 };
 
-type UserSkill = {
-  skillCatalogId: string;
-  type: string;
-  level: SkillLevel;
-  skillCatalog: { id: string; name: string; category: string };
-};
-
-type PerfectPair = {
-  offeredByA: { id: string; name: string; level: SkillLevel };
-  offeredByB: { id: string; name: string; level: SkillLevel };
-  levelScore: number;
-};
-
-type PartialMatch = {
-  offeredByB: { id: string; name: string; level: SkillLevel };
-  levelScore: number;
-};
-
 @Injectable()
 export class MatchingService {
   private readonly logger = new Logger(MatchingService.name);
 
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(private readonly prisma: PrismaService) { }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // CORE ALGORITHM — recalculateForUser(userId)
-  // ══════════════════════════════════════════════════════════════════════════
+  // POST /matches/recalculate
   async recalculateForUser(userId: string): Promise<void> {
     const userA = await this.getUserWithSkills(userId);
     if (!userA) return;
@@ -51,15 +30,11 @@ export class MatchingService {
     const blockedUserIds = await this.getBlockedUserIds(userId);
 
     for (const userB of candidates) {
-      // We no longer skip blocked users (those with active sessions) 
-      // because we want to allow multiple sessions (up to 3) with the same person.
-      // if (blockedUserIds.has(userB.id)) continue;
-
       const { offered: bOffered, wanted: bWanted } = this.splitSkills(
         userB.skills,
       );
 
-      // ── 1. Find perfect matches ─────────────────────────────────────────
+      // on cherche les matches parfaits
       const perfectPairs = this.findPerfectMatches(
         aOffered,
         aWanted,
@@ -67,7 +42,7 @@ export class MatchingService {
         bWanted,
       );
 
-      // ── 2. Find partial matches if no perfect match exists ──────────────
+      // sinon on cherche les matches partiels
       let partialSkills: PartialMatch[] = [];
       if (perfectPairs.length === 0) {
         partialSkills = this.findPartialMatches(
@@ -78,13 +53,12 @@ export class MatchingService {
         );
       }
 
-      // ── 3. Skip if no match at all ──────────────────────────────────────
+      // si rien on passe au suivant
       if (perfectPairs.length === 0 && partialSkills.length === 0) {
-        await this.archiveMatchIfExists(userId, userB.id);
         continue;
       }
 
-      // ── 4. Calculate score and upsert ───────────────────────────────────
+      // on calcule le score final
       const matchDetails = this.calculateMatchDetails(
         perfectPairs,
         partialSkills,
@@ -95,9 +69,7 @@ export class MatchingService {
     this.logger.log(`Matching recalculated for user ${userId}`);
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // REFACTORED PROCESS HELPERS FOR RECALCULATE
-  // ══════════════════════════════════════════════════════════════════════════
+  //HELPERS FOR RECALCULATE
 
   private async getUserWithSkills(userId: string) {
     return this.prisma.user.findUnique({
@@ -294,9 +266,7 @@ export class MatchingService {
     }
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // GET /matches — paginated list for the current user
-  // ══════════════════════════════════════════════════════════════════════════
+  // GET /matches
   async getMatchesForUser(userId: string, filters: MatchFilterDto) {
     const page = filters.page ?? 1;
     const limit = filters.limit ?? 20;
@@ -422,9 +392,7 @@ export class MatchingService {
     };
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // GET /matches/:id — single match detail
-  // ══════════════════════════════════════════════════════════════════════════
+  // GET /matches/:id
   async getMatchById(matchId: string, userId: string) {
     const match = await this.prisma.match.findUnique({
       where: { id: matchId },
@@ -477,34 +445,20 @@ export class MatchingService {
       },
     });
 
-    if (!match) throw new Error('Match not found');
+    if (!match) throw new Error('match non trouve');
 
     if (match.userA.id !== userId && match.userB.id !== userId) {
-      throw new Error('Forbidden');
+      throw new Error('acces refuse');
     }
 
     const other = match.userA.id === userId ? match.userB : match.userA;
     return { ...match, otherUser: other };
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // PRIVATE HELPERS
-  // ══════════════════════════════════════════════════════════════════════════
-
-  private async archiveMatchIfExists(userAId: string, userBId: string) {
-    const [canonicalA, canonicalB] =
-      userAId < userBId ? [userAId, userBId] : [userBId, userAId];
-
-    await this.prisma.match.updateMany({
-      where: { userAId: canonicalA, userBId: canonicalB, status: 'active' },
-      data: { status: 'archived' },
-    });
-  }
-
   private scoreToLabel(score: number): string {
-    if (score >= 70) return 'Très compatible';
-    if (score >= 50) return 'Compatible';
-    return 'Partiellement compatible';
+    if (score >= 70) return 'tres compatible';
+    if (score >= 50) return 'compatible';
+    return 'partiel';
   }
 
   private levelBonus(
@@ -512,8 +466,8 @@ export class MatchingService {
     wantedLevel: SkillLevel,
   ): number {
     const diff = LEVEL_ORDER[offeredLevel] - LEVEL_ORDER[wantedLevel];
-    if (diff === 0) return 20; // exact match
-    if (diff === 1) return 10; // one step above
+    if (diff === 0) return 20;
+    if (diff === 1) return 10;
     return 0;
   }
 
@@ -532,7 +486,7 @@ export class MatchingService {
     return { score: 'desc' as const };
   }
 
-  // ─── Notifications ────────────────────────────────────────────────────────
+  // ───Notifications
   private async sendNewPerfectMatchNotification(
     userAId: string,
     userBId: string,
@@ -589,6 +543,7 @@ export class MatchingService {
     });
   }
 
+  // GET /matches/user/:userId
   async getMatchBetweenUsers(user1Id: string, user2Id: string) {
     const [id1, id2] = [user1Id, user2Id].sort();
 
@@ -622,7 +577,7 @@ export class MatchingService {
       },
     });
 
-    if (!match) throw new NotFoundException('Match not found');
+    if (!match) throw new NotFoundException('match non trouve');
 
     const otherUser = match.userAId === user1Id ? match.userB : match.userA;
     const { userA, userB, ...rest } = match;

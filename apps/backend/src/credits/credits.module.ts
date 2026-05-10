@@ -8,6 +8,6 @@ import { AuthModule } from '../auth/auth.module';
   imports: [forwardRef(() => AuthModule)],
   controllers: [CreditsController],
   providers: [CreditsService, PrismaService],
-  exports: [CreditsService], // SessionsModule needs this
+  exports: [CreditsService],
 })
 export class CreditsModule {}

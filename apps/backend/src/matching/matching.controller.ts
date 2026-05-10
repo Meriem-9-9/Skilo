@@ -23,9 +23,9 @@ import { MatchFilterDto } from './dto/match-filter.dto';
 @UseGuards(JwtGuard)
 @Controller('matches')
 export class MatchingController {
-  constructor(private readonly matchingService: MatchingService) {}
+  constructor(private readonly matchingService: MatchingService) { }
 
-  // GET /matches — own match list (paginated, filtered)
+  // GET /matches
   @Get()
   getMyMatches(
     @Query() filters: MatchFilterDto,
@@ -34,7 +34,7 @@ export class MatchingController {
     return this.matchingService.getMatchesForUser(req.user.sub, filters);
   }
 
-  // GET /matches/:id — single match detail
+  // GET /matches/:id
   @Get(':id')
   async getMatch(
     @Param('id', ParseUUIDPipe) id: string,
@@ -44,15 +44,15 @@ export class MatchingController {
       return await this.matchingService.getMatchById(id, req.user.sub);
     } catch (e: unknown) {
       if (e instanceof Error) {
-        if (e.message === 'Match not found')
-          throw new NotFoundException('Match not found');
-        if (e.message === 'Forbidden') throw new ForbiddenException();
+        if (e.message === 'match non trouve')
+          throw new NotFoundException('match non trouve');
+        if (e.message === 'acces refuse') throw new ForbiddenException('acces refuse');
       }
       throw e;
     }
   }
 
-  // GET /matches/user/:userId — find match by target user ID
+  // GET /matches/user/:userId
   @Get('user/:userId')
   async getMatchByUser(
     @Param('userId', ParseUUIDPipe) userId: string,
@@ -61,15 +61,13 @@ export class MatchingController {
     return this.matchingService.getMatchBetweenUsers(req.user.sub, userId);
   }
 
-  // POST /matches/recalculate — admin trigger for manual recalculation
+  // POST /matches/recalculate
   @Roles(Role.ADMIN)
   @UseGuards(RolesGuard)
   @Post('recalculate')
   @HttpCode(HttpStatus.OK)
   async recalculate(@Request() req: RequestWithUser) {
-    // Admin triggers a full recalculation for themselves (or could be extended
-    // to accept a userId param to recalculate for any user)
     await this.matchingService.recalculateForUser(req.user.sub);
-    return { message: 'Matching recalculation triggered.' };
+    return { message: 'matching relance' };
   }
 }

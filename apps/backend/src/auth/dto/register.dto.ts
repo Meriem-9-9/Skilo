@@ -16,9 +16,9 @@ export class RegisterDto {
   email: string;
 
   @IsString()
-  @MinLength(8, { message: 'Mot de passe : 8 caractères minimum' })
+  @MinLength(8, { message: 'Mot de passe : 8 caracteres minimum' })
   @MaxLength(72, {
-    message: 'Mot de passe : 72 caractères maximum (limite bcrypt)',
+    message: 'Mot de passe : 72 caracteres maximum (limite bcrypt)',
   })
   @Matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)/, {
     message: 'Mot de passe : au moins 1 majuscule, 1 minuscule et 1 chiffre',

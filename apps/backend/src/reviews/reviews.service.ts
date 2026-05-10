@@ -15,10 +15,8 @@ const BADGE_MIN_RATING = 4.0;
 export class ReviewsService {
   constructor(private readonly prisma: PrismaService) {}
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // POST /reviews
-  // ══════════════════════════════════════════════════════════════════════════
-  async submit(reviewerId: string, dto: SubmitReviewDto) {
+    // POST /reviews
+    async submit(reviewerId: string, dto: SubmitReviewDto) {
     // 1. Fetch the session
     const session = await this.prisma.session.findUnique({
       where: { id: dto.sessionId },
@@ -32,12 +30,12 @@ export class ReviewsService {
       },
     });
 
-    if (!session) throw new NotFoundException('Session not found');
+    if (!session) throw new NotFoundException('session non trouvee');
 
     // 2. Session must be completed or auto_completed
     if (!['completed', 'auto_completed'].includes(session.status)) {
       throw new ForbiddenException(
-        "Vous ne pouvez évaluer qu'une session complétée.",
+        "vous ne pouvez evaluer qu'une session terminee",
       );
     }
 
@@ -52,7 +50,7 @@ export class ReviewsService {
     );
     if (new Date() > windowClose) {
       throw new ForbiddenException(
-        "La fenêtre d'évaluation est fermée pour cette session.",
+        "la fenetre d'evaluation est fermee",
       );
     }
 
@@ -63,7 +61,7 @@ export class ReviewsService {
       },
     });
     if (existing) {
-      throw new ConflictException('Vous avez déjà évalué cette session.');
+      throw new ConflictException('deja evalue');
     }
 
     // 6. Determine who is being reviewed (the other participant)
@@ -134,24 +132,22 @@ export class ReviewsService {
           type: 'review_received',
           payload: { 
             sessionId: dto.sessionId,
-            body: 'Vous avez reçu un nouvel avis ! Les deux évaluations sont maintenant visibles.'
+            body: 'nouvel avis disponible'
           },
         },
       });
     }
 
-    return { message: 'Votre évaluation a été enregistrée.' };
+    return { message: 'avis enregistre' };
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // GET /reviews/session/:sessionId — own reviews for a session
-  // ══════════════════════════════════════════════════════════════════════════
+  // GET /reviews/session/:sessionId
   async getForSession(sessionId: string, userId: string) {
     const session = await this.prisma.session.findUnique({
       where: { id: sessionId },
       select: { proposedById: true, recipientId: true },
     });
-    if (!session) throw new NotFoundException('Session not found');
+    if (!session) throw new NotFoundException('session non trouvee');
 
     const isParticipant =
       session.proposedById === userId || session.recipientId === userId;
@@ -173,9 +169,7 @@ export class ReviewsService {
     });
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // GET /users/:id/reviews — public reviews for a user profile
-  // ══════════════════════════════════════════════════════════════════════════
+  // GET /users/:id/reviews
   async getForUser(userId: string, page = 1, limit = 20) {
     const skip = (page - 1) * limit;
 
@@ -208,9 +202,7 @@ export class ReviewsService {
     };
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // INTERNAL — recalculate all average ratings for a user
-  // ══════════════════════════════════════════════════════════════════════════
+  // recalcule toutes les moyennes d'un user
   async recalculateAverages(userId: string) {
     const reviews = await this.prisma.review.findMany({
       where: { revieweeId: userId, isVisible: true },
@@ -244,9 +236,7 @@ export class ReviewsService {
     });
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // INTERNAL — check and award/revoke "Fiable" badge (FC-05-B)
-  // ══════════════════════════════════════════════════════════════════════════
+  // check si l'user merite le badge fiable
   async checkReliableBadge(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -275,7 +265,7 @@ export class ReviewsService {
           type: 'badge_earned',
           payload: {
             badge: 'fiable',
-            message: 'Félicitations — vous avez obtenu le badge Fiable !',
+            message: 'nouveau badge fiable',
           },
         },
       });

@@ -23,37 +23,25 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../auth/enums/role.enum';
 import { RequestWithUser } from '../auth/types/request-with-user.type';
 
-@UseGuards(JwtGuard) // all routes need a valid token
+@UseGuards(JwtGuard) 
 @Controller('skills')
 export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
 
-  // ══════════════════════════════════════════════════════════════
-  // CLIENT routes — any authenticated user
-  // ══════════════════════════════════════════════════════════════
-
-  // GET /skills/search?q=java
-  // Used by onboarding + profile edit autocomplete
+  // GET /skills/search
   @Get('search')
   search(@Query('q') q?: string) {
     return this.skillsService.search(q);
   }
 
   // POST /skills
-  // User proposes a new skill → status: pending_review
   @Post()
   @HttpCode(HttpStatus.CREATED)
   create(@Body() dto: CreateSkillDto, @Request() req: RequestWithUser) {
     return this.skillsService.create(dto, req.user.sub);
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // ADMIN routes — role: admin only
-  // Always pair JwtGuard (who are you?) + RolesGuard (are you admin?)
-  // ══════════════════════════════════════════════════════════════
-
   // GET /skills
-  // Full list with filters: ?status=pending_review|approved|rejected
   @Roles(Role.ADMIN)
   @UseGuards(RolesGuard)
   @Get()
@@ -66,7 +54,6 @@ export class SkillsController {
   }
 
   // GET /skills/pending
-  // Shortcut for the admin review screen — only pending_review skills
   @Roles(Role.ADMIN)
   @UseGuards(RolesGuard)
   @Get('pending')
@@ -96,7 +83,6 @@ export class SkillsController {
   }
 
   // PATCH /skills/:id/aliases
-  // Admin can enrich an approved skill with aliases to improve autocomplete
   @Roles(Role.ADMIN)
   @UseGuards(RolesGuard)
   @Patch(':id/aliases')

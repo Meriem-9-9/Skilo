@@ -13,9 +13,9 @@ export class OnboardingService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly matchingService: MatchingService,
-  ) {}
+  ) { }
 
-  // ─── GET /onboarding/status ───────────────────────────────────────────────
+  // GET /onboarding/status
   async getStatus(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -34,11 +34,11 @@ export class OnboardingService {
       },
     });
 
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException('user non trouve');
 
     return {
       isOnboarded: user.isOnboarded,
-      // Tells the frontend which steps are already filled
+      // on renvoie ce qui est deja rempli pour le frontend
       steps: {
         skillsOffered: user.skills.filter((s) => s.type === SkillType.offered),
         skillsWanted: user.skills.filter((s) => s.type === SkillType.wanted),
@@ -48,25 +48,22 @@ export class OnboardingService {
     };
   }
 
-  // ─── POST /onboarding ─────────────────────────────────────────────────────
+  // POST /onboarding
   async complete(userId: string, dto: OnboardingDto) {
-    // 1. Verify the user isn't already onboarded
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException('user non trouve');
 
     if (user.isOnboarded) {
-      throw new BadRequestException(
-        'Onboarding already completed. Use PATCH /users/me to update your profile.',
-      );
+      throw new BadRequestException('onboarding deja fini');
     }
 
-    // 2. Collect all skillIds from both lists
+    // collecter 
     const allSkillIds = [
       ...dto.skillsOffered.map((s) => s.skillId),
       ...dto.skillsWanted.map((s) => s.skillId),
     ];
 
-    // 3. Verify every skillId exists in the catalog (approved or pending_review)
+    // verifier que les skills existent
     const foundSkills = await this.prisma.skillCatalog.findMany({
       where: {
         id: { in: allSkillIds },
@@ -80,11 +77,11 @@ export class OnboardingService {
 
     if (missingIds.length > 0) {
       throw new BadRequestException(
-        `The following skill IDs were not found: ${missingIds.join(', ')}`,
+        `competences non trouvees: ${missingIds.join(', ')}`,
       );
     }
 
-    // 4. Build the UserSkill records to insert
+    // preparer les skills a creer
     const skillsToCreate = [
       ...dto.skillsOffered.map((s) => ({
         userId,
@@ -100,12 +97,10 @@ export class OnboardingService {
       })),
     ];
 
-    // 5. Run everything in a DB transaction so either all saves succeed or none do
+    // transaction pour tout sauvegarder d'un coup
     await this.prisma.$transaction(async (tx) => {
-      // Delete any partial skills that may exist from a previous failed attempt
       await tx.userSkill.deleteMany({ where: { userId } });
 
-      // Create the new skills
       await tx.userSkill.createMany({ data: skillsToCreate });
 
       // Update the user: city, bio, avatar, isOnboarded = true
@@ -127,8 +122,8 @@ export class OnboardingService {
           userId,
           type: 'welcome_bonus',
           amount: 2,
-          balanceAfter: user.creditBalance, // still 2 from register
-          description: "Crédit de bienvenue à l'inscription",
+          balanceAfter: user.creditBalance, 
+          description: "credit de bienvenue",
         },
       });
     });
@@ -157,10 +152,10 @@ export class OnboardingService {
       },
     });
 
-    this.matchingService.recalculateForUser(userId).catch(() => {});
+    this.matchingService.recalculateForUser(userId).catch(() => { });
 
     return {
-      message: 'Onboarding completed successfully',
+      message: 'onboarding fini avec succes',
       user: updated,
       redirectTo: '/dashboard',
     };

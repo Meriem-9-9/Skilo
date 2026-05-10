@@ -3,10 +3,11 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
-import { sessionsApi, uploadApi, Message, Session } from '@/lib/api';
+import { sessionsApi, uploadApi, Message, Session, getAccessToken } from '@/lib/api';
 import { useAuth } from '@/contexts/auth-context';
 import { Send, Image as ImageIcon, Link as LinkIcon, Loader2, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
+import { io, Socket } from 'socket.io-client';
 
 export default function ChatPage() {
   const params = useParams();
@@ -21,6 +22,8 @@ export default function ChatPage() {
   const [uploading, setUploading] = useState(false);
   const [pageLoading, setPageLoading] = useState(true);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  const [socket, setSocket] = useState<Socket | null>(null);
 
   useEffect(() => {
     if (!sessionId) return;
@@ -59,11 +62,28 @@ export default function ChatPage() {
     };
 
     fetchMessages();
-    const interval = setInterval(fetchMessages, 3000); // poll every 3s
+
+    const baseUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:2006';
+    const newSocket = io(baseUrl);
+    setSocket(newSocket);
+
+    newSocket.on('connect', () => {
+      newSocket.emit('joinSession', {
+        sessionId,
+        token: getAccessToken(),
+      });
+    });
+
+    newSocket.on('newMessage', (msg: Message) => {
+      setMessages(prev => {
+        if (prev.some(m => m.id === msg.id)) return prev;
+        return [...prev, msg];
+      });
+    });
 
     return () => {
       isMounted = false;
-      clearInterval(interval);
+      newSocket.disconnect();
     };
   }, [sessionId, session]);
 
@@ -90,15 +110,13 @@ export default function ChatPage() {
     e?.preventDefault();
     if (!content.trim() && !uploading) return;
     
-    setLoading(true);
-    try {
-      const msg = await sessionsApi.createMessage(session.id, { content: content.trim() });
-      setMessages(prev => [...prev, msg]);
+    if (socket && session) {
+      socket.emit('sendMessage', {
+        sessionId: session.id,
+        token: getAccessToken(),
+        content: content.trim()
+      });
       setContent('');
-    } catch (err) {
-      console.error('Failed to send message', err);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -109,8 +127,13 @@ export default function ChatPage() {
     setUploading(true);
     try {
       const { avatarUrl } = await uploadApi.avatar(file);
-      const msg = await sessionsApi.createMessage(session.id, { imageUrl: avatarUrl });
-      setMessages(prev => [...prev, msg]);
+      if (socket && session) {
+        socket.emit('sendMessage', {
+          sessionId: session.id,
+          token: getAccessToken(),
+          imageUrl: avatarUrl
+        });
+      }
     } catch (err) {
       console.error('Failed to upload image', err);
     } finally {
@@ -119,16 +142,12 @@ export default function ChatPage() {
   };
 
   const handleSuggestMeetingLink = async () => {
-    setLoading(true);
-    try {
-      const msg = await sessionsApi.createMessage(session.id, { 
-        isMeetingLinkSuggestion: true 
+    if (socket && session) {
+      socket.emit('sendMessage', {
+        sessionId: session.id,
+        token: getAccessToken(),
+        isMeetingLinkSuggestion: true
       });
-      setMessages(prev => [...prev, msg]);
-    } catch (err) {
-      console.error('Failed to suggest link', err);
-    } finally {
-      setLoading(false);
     }
   };
 

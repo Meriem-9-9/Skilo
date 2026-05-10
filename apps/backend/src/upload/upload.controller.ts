@@ -16,13 +16,14 @@ import { UploadService } from './upload.service';
 export class UploadController {
   constructor(private readonly uploadService: UploadService) {}
 
+  // POST /upload
   @Post()
   @UseGuards(JwtGuard)
   @HttpCode(HttpStatus.OK)
   @UseInterceptors(FileInterceptor('file'))
   async uploadImage(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
-      throw new BadRequestException('No file provided');
+      throw new BadRequestException('aucun fichier fourni');
     }
 
     try {
@@ -31,7 +32,7 @@ export class UploadController {
         avatarUrl: result.secure_url,
       };
     } catch (error) {
-      throw new BadRequestException('Error uploading file to Cloudinary');
+      throw new BadRequestException('erreur lors de l\'upload');
     }
   }
 }
