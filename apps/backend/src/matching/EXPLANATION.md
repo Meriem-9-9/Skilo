@@ -48,3 +48,20 @@ Elle est plus simple : elle cherche juste si **User B** a quelque chose que **Us
 - S'il n'existe pas, on le cree (Insert).
 - C'est ici qu'on envoie aussi les notifications quand un nouveau match est trouve.
 
+---
+
+### C'est quoi un Job et le Cron ?
+
+Dans `matching.job.ts`, on utilise un **Job** avec une expression **Cron**.
+
+#### Pourquoi un Job ?
+Parfois, on veut faire des taches automatiquement sans qu'un utilisateur n'ait besoin de cliquer sur un bouton. Ici, le job recalcule tous les matches de la plateforme.
+
+#### Pourquoi en avons-nous besoin ?
+Meme si on recalcule le matching quand un utilisateur change son profil, il peut y avoir des petits bugs ou des changements en base de donnees qui ne declenchent pas de recalcul. Le job est la comme "filet de securite" pour s'assurer que tout est a jour au moins une fois par heure.
+
+#### C'est quoi le Cron ?
+Le `Cron` c'est un standard pour dire au serveur : "Fais cette tache a tel moment".
+- `@Cron(CronExpression.EVERY_HOUR)` veut dire : "Execute cette fonction toutes les heures pile".
+- C'est comme programmer un reveil sur ton telephone pour qu'il sonne tous les matins a la meme heure.
+

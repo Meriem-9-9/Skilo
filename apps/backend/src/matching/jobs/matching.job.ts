@@ -3,7 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MatchingService } from '../matching.service';
 
-// job qui tourne toutes les heures pour recalculer les matches de tout le monde
+// job qui tourne a chaque heure pour recalculer les matches
 @Injectable()
 export class MatchingJob {
   private readonly logger = new Logger(MatchingJob.name);
@@ -15,26 +15,25 @@ export class MatchingJob {
 
   @Cron(CronExpression.EVERY_HOUR)
   async runHourlyRecalculation() {
-    this.logger.log('Starting hourly matching recalculation...');
+    this.logger.log('Lancement du recalcul horaire...');
 
-    // Fetch all active, onboarded users
+    // recuperation de tous les users actifs
     const users = await this.prisma.user.findMany({
       where: { isActive: true, isOnboarded: true },
       select: { id: true },
     });
 
-    this.logger.log(`Recalculating matches for ${users.length} users`);
+    this.logger.log(`Recalcul de ${users.length} users`);
 
-    // on boucle sur les users un par un pour pas surcharger la db
+    // boucle un par un
     for (const user of users) {
       try {
         await this.matchingService.recalculateForUser(user.id);
       } catch (error) {
-        // Log and continue — one failure shouldn't stop the whole job
-        this.logger.error(`Failed for user ${user.id}:`, error);
+        this.logger.error(`Erreur pour user ${user.id}:`, error);
       }
     }
 
-    this.logger.log('Hourly matching recalculation completed.');
+    this.logger.log('Recalcul termine.');
   }
 }
