@@ -4,6 +4,8 @@ import {
   Injectable,
   Logger,
   UnauthorizedException,
+  HttpException,
+  HttpStatus,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -19,9 +21,9 @@ import { Role } from './enums/role.enum';
 import { MatchingService } from '../matching/matching.service';
 import { CreditsService } from '../credits/credits.service';
 
-const BCRYPT_COST = 12; // spec FC-01-A
+const BCRYPT_COST = 12; 
 const MAX_ATTEMPTS = 5;
-const BLOCK_DURATION_MS = 15 * 60 * 1000; // 15 minutes
+const BLOCK_DURATION_MS = 15 * 60 * 1000; 
 
 @Injectable()
 export class AuthService {
@@ -35,16 +37,15 @@ export class AuthService {
     private readonly creditsService: CreditsService,
   ) {}
 
-  // ─── Register ─────────────────────────────────────────────────────────────
-
+  // POST /auth/register
   async register(dto: RegisterDto): Promise<AuthResponseDto> {
-    // Case-insensitive uniqueness check
+    // on check si l'email existe deja
     const existing = await this.prisma.user.findUnique({
       where: { email: dto.email.toLowerCase() },
     });
     if (existing) {
       throw new ConflictException(
-        'Cette adresse email est déjà associée à un compte.',
+        'email deja utilise',
       );
     }
 
@@ -57,11 +58,10 @@ export class AuthService {
         firstName: dto.firstName,
         lastName: dto.lastName,
         referredById: dto.referredById ?? null,
-        // creditBalance defaults to 2 in schema (welcome bonus — FC-06-A)
       },
     });
 
-    // ─── Award Referral Bonus to the Referrer ───
+    // bonus de parrainage pour le parrain
     if (dto.referredById) {
       this.logger.log(`Awarding referral bonus for new user ${user.id} to referrer ${dto.referredById}`);
       const referrer = await this.prisma.user.findUnique({
@@ -73,7 +73,7 @@ export class AuthService {
         await this.creditsService.credit(
           referrer.id,
           5,
-          'none', // No session linked
+          'none', 
           'referral_bonus',
           `Bonus d'invitation pour l'inscription de ${user.firstName}`
         );
@@ -91,22 +91,19 @@ export class AuthService {
     return this.buildResponse(user);
   }
 
-  // ─── Login ────────────────────────────────────────────────────────────────
-
+  // POST /auth/login
   async login(dto: LoginDto): Promise<AuthResponseDto> {
     const email = dto.email.toLowerCase();
 
     const user = await this.prisma.user.findUnique({ where: { email } });
 
-    // Brute-force check (FC-01-B) — runs before password comparison.
-    // If the user doesn't exist we skip it (nothing to lock) and fall through
-    // to the generic 401 below — never revealing whether the email exists.
+    // on verifie si le compte est bloque
     if (user) {
       this.assertNotLocked(user);
     }
 
     if (!user) {
-      // Generic message — never confirm whether the email exists
+      // message generique pour pas dire si l'email existe
       throw new UnauthorizedException('Email ou mot de passe incorrect.');
     }
 
@@ -117,14 +114,14 @@ export class AuthService {
       throw new UnauthorizedException('Email ou mot de passe incorrect.');
     }
 
-    // Disabled account check (FC-01-B)
+    // on check si le compte est actif
     if (!user.isActive) {
       throw new ForbiddenException(
-        'Ce compte a été désactivé. Contactez le support.',
+        'compte desactive. contactez le support',
       );
     }
 
-    // Success — reset failed attempts + update lastLoginAt
+    // success : on reset les tentatives et on met a jour la date de login
     await this.prisma.user.update({
       where: { id: user.id },
       data: {
@@ -141,11 +138,10 @@ export class AuthService {
     return await this.buildResponse(user);
   }
 
-  // ─── Refresh ──────────────────────────────────────────────────────────────
-
+  // POST /auth/refresh
   async refresh(refreshToken: string | undefined): Promise<AuthResponseDto> {
     if (!refreshToken) {
-      throw new UnauthorizedException('No refresh token provided');
+      throw new UnauthorizedException('pas de token de refresh');
     }
 
     // Check blacklist
@@ -154,7 +150,7 @@ export class AuthService {
       where: { tokenHash },
     });
     if (blacklisted) {
-      throw new UnauthorizedException('Token has been revoked');
+      throw new UnauthorizedException('token revoque');
     }
 
     // Verify signature + expiry
@@ -164,7 +160,7 @@ export class AuthService {
         secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
       });
     } catch {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+      throw new UnauthorizedException('token invalide ou expire');
     }
 
     // User must still exist and be active
@@ -172,7 +168,7 @@ export class AuthService {
       where: { id: payload.sub },
     });
     if (!user || !user.isActive) {
-      throw new UnauthorizedException('User not found or inactive');
+      throw new UnauthorizedException('user non trouve ou inactif');
     }
 
     // Rotate: blacklist the old refresh token before issuing a new one
@@ -191,8 +187,7 @@ export class AuthService {
     return this.buildResponse(user);
   }
 
-  // ─── Logout ───────────────────────────────────────────────────────────────
-
+  // POST /auth/logout
   async logout(refreshToken: string | undefined): Promise<void> {
     if (!refreshToken) return;
 
@@ -216,12 +211,7 @@ export class AuthService {
     }
   }
 
-  // ─── Brute-force helpers ──────────────────────────────────────────────────
-
-  /**
-   * Throws 429 if the user is currently blocked.
-   * Uses User.failedLoginAttempts + User.lockedUntil (already in schema).
-   */
+  // helpers pour le blocage de compte
   private assertNotLocked(user: User): void {
     if (
       user.failedLoginAttempts >= MAX_ATTEMPTS &&
@@ -231,16 +221,14 @@ export class AuthService {
       const minutes = Math.ceil(
         (user.lockedUntil.getTime() - Date.now()) / 60_000,
       );
-      throw new Error(
-        `Trop de tentatives. Réessayez dans ${minutes} minute(s).`,
+      throw new HttpException(
+        `trop de tentatives. reessayez dans ${minutes} minute(s)`,
+        HttpStatus.TOO_MANY_REQUESTS,
       );
     }
   }
 
-  /**
-   * Increments failedLoginAttempts on the User row.
-   * Locks the account for 15 min once MAX_ATTEMPTS is reached.
-   */
+  // on enregistre une tentative ratee
   private async recordFailedAttempt(user: User): Promise<void> {
     const newCount = user.failedLoginAttempts + 1;
 
@@ -256,8 +244,7 @@ export class AuthService {
     });
   }
 
-  // ─── Private helpers ──────────────────────────────────────────────────────
-
+  // helpers prives
   private async buildResponse(user: User): Promise<AuthResponseDto> {
     const payload: JwtPayload = {
       sub: user.id,

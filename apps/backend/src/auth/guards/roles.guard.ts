@@ -19,20 +19,19 @@ export class RolesGuard implements CanActivate {
       context.getClass(),
     ]);
 
-    // No @Roles() decorator = any authenticated user can access
+    // si pas de decorateur @Roles, tout le monde peut passer
     if (!requiredRoles || requiredRoles.length === 0) return true;
 
     const request = context.switchToHttp().getRequest<RequestWithUser>();
     const user = request.user;
 
-    // BUG FIX: was "if (requiredRoles.length > 0) throw" — always blocked everyone
-    // Correct: block only if the user's role is NOT in the required list
+    // on verifie si le role de l'user est dans la liste
     if (
       !requiredRoles
         .map((role) => role.toLowerCase())
         .includes(user.role.toLowerCase())
     ) {
-      throw new ForbiddenException('You do not have permission');
+      throw new ForbiddenException('pas de permission');
     }
 
     return true;

@@ -13,7 +13,7 @@ import {
 import { Request as ExpressRequest, Response } from 'express';
 import { AuthService } from './auth.service';
 import { JwtGuard } from './guards/jwt.guard';
-import { RolesGuard } from './guards/roles.guard'; // ← import added
+import { RolesGuard } from './guards/roles.guard'; 
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { AuthResponseDto } from './dto/auth-response.dto';
@@ -22,18 +22,19 @@ import { JwtPayload } from './types/jwt-payload.type';
 import { Roles } from './decorators/roles.decorator';
 import { Role } from './enums/role.enum';
 
-// Helper: cookie options in one place so they're always consistent
+// options des cookies de refresh pour qu'elles soient pareilles partout
 const REFRESH_COOKIE_OPTIONS = {
   httpOnly: true,
   secure: process.env.NODE_ENV === 'production',
   sameSite: 'lax' as const,
-  maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  maxAge: 7 * 24 * 60 * 60 * 1000, 
 };
 
 @Controller('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  // POST /auth/register
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
   async register(
@@ -45,6 +46,7 @@ export class AuthController {
     return { access_token: result.access_token, user: result.user };
   }
 
+  // POST /auth/login
   @Post('login')
   @HttpCode(HttpStatus.OK)
   async login(
@@ -56,6 +58,7 @@ export class AuthController {
     return { access_token: result.access_token, user: result.user };
   }
 
+  // POST /auth/refresh
   @Post('refresh')
   @HttpCode(HttpStatus.OK)
   async refresh(
@@ -70,6 +73,7 @@ export class AuthController {
     return { access_token: result.access_token, user: result.user };
   }
 
+  // POST /auth/logout
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   async logout(
@@ -83,20 +87,21 @@ export class AuthController {
       await this.authService.logout(refreshToken);
     }
     res.clearCookie('refresh_token');
-    return { message: 'Deconnecte avec succes' };
+    return { message: 'deconnecte avec succes' };
   }
 
   @UseGuards(JwtGuard)
+  // GET /auth/me
   @Get('me')
   @HttpCode(HttpStatus.OK)
   getProfile(@Request() req: RequestWithUser): JwtPayload {
     return req.user;
   }
 
-  // BUG FIX: added RolesGuard — without it @Roles() is just a decoration with no effect.
-  // Order matters: JwtGuard runs first (authenticates), then RolesGuard (authorises).
+  // on utilise le rolesguard pour verifier les roles admin etc
   @Roles(Role.ADMIN)
   @UseGuards(JwtGuard, RolesGuard)
+  // GET /auth/admin
   @Get('admin')
   @HttpCode(HttpStatus.OK)
   getAdminData(): { secret: string } {
