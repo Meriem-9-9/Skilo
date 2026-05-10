@@ -106,7 +106,7 @@ export class SkillsService {
 
     if (existing) {
       return {
-        message: 'Cette compétence existe déjà.',
+        message: 'Cette competence existe deja.',
         alreadyExists: true,
         skill: existing,
       };
@@ -131,7 +131,7 @@ export class SkillsService {
 
     return {
       message:
-        'Compétence soumise pour validation. Elle sera disponible après revue par un administrateur.',
+        'Competence soumise pour validation. Elle sera disponible apres revue par un administrateur.',
       alreadyExists: false,
       skill,
     };

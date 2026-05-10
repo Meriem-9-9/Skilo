@@ -3,16 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../../prisma/prisma.service';
 import { MatchingService } from '../matching.service';
 
-/**
- * MatchingJob
- *
- * Runs every hour and recalculates matches for every active, onboarded user.
- * This catches any cases that were missed by event-driven triggers
- * (login, profile update, skill changes).
- *
- * To use this job, make sure @nestjs/schedule is installed and
- * ScheduleModule.forRoot() is added in AppModule.
- */
+// job qui tourne toutes les heures pour recalculer les matches de tout le monde
 @Injectable()
 export class MatchingJob {
   private readonly logger = new Logger(MatchingJob.name);
@@ -34,7 +25,7 @@ export class MatchingJob {
 
     this.logger.log(`Recalculating matches for ${users.length} users`);
 
-    // Process one by one — not in parallel to avoid DB overload
+    // on boucle sur les users un par un pour pas surcharger la db
     for (const user of users) {
       try {
         await this.matchingService.recalculateForUser(user.id);

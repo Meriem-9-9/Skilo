@@ -83,7 +83,7 @@ export class AuthController {
       await this.authService.logout(refreshToken);
     }
     res.clearCookie('refresh_token');
-    return { message: 'Déconnecté avec succès' };
+    return { message: 'Deconnecte avec succes' };
   }
 
   @UseGuards(JwtGuard)

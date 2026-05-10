@@ -120,7 +120,7 @@ export class UsersService {
     }
 
     return {
-      message: 'Profil mis à jour avec succès.',
+      message: 'Profil mis a jour avec succes.',
       user: { ...updated, profileStrength: strength },
     };
   }
@@ -131,7 +131,7 @@ export class UsersService {
       where: { id: userId },
       data: { isActive: false },
     });
-    return { message: 'Votre compte a été désactivé.' };
+    return { message: 'Votre compte a ete desactive.' };
   }
 
   //  GET /users/:id (public profile)
@@ -278,7 +278,7 @@ export class UsersService {
 
     await this.matchingService.recalculateForUser(userId); // Recalculate matches for this user since their skills changed
 
-    return { message: 'Compétence ajoutée.', skill: userSkill };
+    return { message: 'Competence ajoutee.', skill: userSkill };
   }
 
   //  PATCH /users/me/skills/:userSkillId
@@ -307,7 +307,7 @@ export class UsersService {
 
     await this.matchingService.recalculateForUser(userId); // Recalculate matches for this user since their skills changed
 
-    return { message: 'Niveau mis à jour.', skill: updated };
+    return { message: 'Niveau mis a jour.', skill: updated };
   }
 
   //  DELETE /users/me/skills/:userSkillId
@@ -349,7 +349,7 @@ export class UsersService {
 
     await this.matchingService.recalculateForUser(userId); // Recalculate matches for this user since their skills changed
 
-    return { message: 'Compétence supprimée.' };
+    return { message: 'Competence supprimee.' };
   }
 
   //  Profile strength (FC-02-04)

@@ -7,10 +7,10 @@ import { AuthModule } from '../auth/auth.module';
 
 @Module({
   imports: [
-    forwardRef(() => AuthModule), // provides JwtGuard + RolesGuard
+    forwardRef(() => AuthModule),
   ],
   controllers: [MatchingController],
   providers: [MatchingService, MatchingJob, PrismaService],
-  exports: [MatchingService], // exported so AuthService, UsersService can call recalculateForUser
+  exports: [MatchingService],
 })
 export class MatchingModule {}

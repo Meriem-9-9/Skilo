@@ -35,10 +35,8 @@ export class SessionsService {
     private readonly creditsService: CreditsService,
   ) {}
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // POST /sessions — propose a session
-  // ══════════════════════════════════════════════════════════════════════════
-  async propose(initiatorId: string, dto: ProposeSessionDto) {
+    // POST /sessions — propose a session
+    async propose(initiatorId: string, dto: ProposeSessionDto) {
     const scheduledAt = new Date(dto.scheduledAt);
 
     this.validateSessionDate(scheduledAt);
@@ -127,13 +125,11 @@ export class SessionsService {
       },
     );
 
-    return { message: 'Session proposée avec succès.', session };
+    return { message: 'Session proposee avec succes.', session };
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // Validation Helpers
-  // ══════════════════════════════════════════════════════════════════════════
-  private validateSessionDate(scheduledAt: Date) {
+    // Validation Helpers
+    private validateSessionDate(scheduledAt: Date) {
     const now = new Date();
     const minDate = new Date(now.getTime() + 2 * 60 * 60 * 1000);
     if (scheduledAt < minDate) {
@@ -236,10 +232,8 @@ export class SessionsService {
     });
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // PATCH /sessions/:id/accept
-  // ══════════════════════════════════════════════════════════════════════════
-  async accept(sessionId: string, recipientId: string) {
+    // PATCH /sessions/:id/accept
+    async accept(sessionId: string, recipientId: string) {
     const session = await this.findSessionOrThrow(sessionId);
 
     if (session.recipientId !== recipientId) throw new ForbiddenException();
@@ -269,22 +263,20 @@ export class SessionsService {
       'session_accepted',
       {
         scheduledAt: session.scheduledAt.toISOString(),
-        body: 'Votre demande de session a été acceptée !',
+        body: 'Votre demande de session a ete acceptee !',
       },
     );
 
-    return { message: 'Session acceptée.' };
+    return { message: 'Session acceptee.' };
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // PATCH /sessions/:id/decline
-  // ══════════════════════════════════════════════════════════════════════════
-  async decline(sessionId: string, recipientId: string, dto: DeclineCancelDto) {
+    // PATCH /sessions/:id/decline
+    async decline(sessionId: string, recipientId: string, dto: DeclineCancelDto) {
     const session = await this.findSessionOrThrow(sessionId);
 
     if (session.recipientId !== recipientId) throw new ForbiddenException();
     if (session.status !== 'pending') {
-      throw new BadRequestException('Cette session ne peut plus être refusée.');
+      throw new BadRequestException('Cette session ne peut plus etre refusee.');
     }
 
     if (session.creditsUsed > 0) {
@@ -307,17 +299,15 @@ export class SessionsService {
       'session_declined',
       {
         reason: dto.reason ?? null,
-        body: 'Votre demande de session a été déclinée.',
+        body: 'Votre demande de session a ete declinee.',
       },
     );
 
-    return { message: 'Session refusée.' };
+    return { message: 'Session refusee.' };
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // PATCH /sessions/:id/cancel
-  // ══════════════════════════════════════════════════════════════════════════
-  async cancel(sessionId: string, userId: string, dto: DeclineCancelDto) {
+    // PATCH /sessions/:id/cancel
+    async cancel(sessionId: string, userId: string, dto: DeclineCancelDto) {
     const session = await this.findSessionOrThrow(sessionId);
 
     const isParticipant =
@@ -325,7 +315,7 @@ export class SessionsService {
     if (!isParticipant) throw new ForbiddenException();
 
     if (!['pending', 'confirmed'].includes(session.status)) {
-      throw new BadRequestException('Cette session ne peut plus être annulée.');
+      throw new BadRequestException('Cette session ne peut plus etre annulee.');
     }
 
     const twoHoursBefore = new Date(
@@ -364,23 +354,21 @@ export class SessionsService {
         payload: {
           sessionId,
           reason: dto.reason ?? null,
-          body: 'Une session planifiée a été annulée.',
+          body: 'session annulee',
         },
       },
     });
 
     return {
-      message: 'Session annulée.',
+      message: 'Session annulee.',
       warning: isLateCancel
         ? 'Annulation tardive (moins de 2h avant la session).'
         : null,
     };
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // PATCH /sessions/:id/confirm — both users confirm if it happened
-  // ══════════════════════════════════════════════════════════════════════════
-  async confirm(sessionId: string, userId: string, dto: ConfirmSessionDto) {
+    // PATCH /sessions/:id/confirm — both users confirm if it happened
+    async confirm(sessionId: string, userId: string, dto: ConfirmSessionDto) {
     const session = await this.findSessionOrThrow(sessionId);
 
     if (session.status !== 'confirmed') {
@@ -454,13 +442,11 @@ export class SessionsService {
       }
     }
 
-    return { message: 'Confirmation enregistrée.' };
+    return { message: 'Confirmation enregistree.' };
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // GET /sessions
-  // ══════════════════════════════════════════════════════════════════════════
-  async getMySessions(userId: string, filters: SessionFilterDto) {
+    // GET /sessions
+    async getMySessions(userId: string, filters: SessionFilterDto) {
     const page = filters.page ?? 1;
     const limit = filters.limit ?? 20;
     const skip = (page - 1) * limit;
@@ -526,10 +512,8 @@ export class SessionsService {
     };
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // GET /sessions/:id
-  // ══════════════════════════════════════════════════════════════════════════
-  async getSessionById(sessionId: string, userId: string) {
+    // GET /sessions/:id
+    async getSessionById(sessionId: string, userId: string) {
     const session = await this.prisma.session.findUnique({
       where: { id: sessionId },
       select: {
@@ -559,10 +543,8 @@ export class SessionsService {
     return session;
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // INTERNAL — completeSession (called from confirm + cron jobs)
-  // ══════════════════════════════════════════════════════════════════════════
-  async completeSession(
+    // INTERNAL — completeSession (called from confirm + cron jobs)
+    async completeSession(
     sessionId: string,
     session: {
       proposedById: string;
@@ -635,10 +617,8 @@ export class SessionsService {
     return session;
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // GET /sessions/:id/messages
-  // ══════════════════════════════════════════════════════════════════════════
-  async getMessages(sessionId: string, userId: string) {
+    // GET /sessions/:id/messages
+    async getMessages(sessionId: string, userId: string) {
     const session = await this.findSessionOrThrow(sessionId);
 
     if (session.proposedById !== userId && session.recipientId !== userId) {
@@ -663,10 +643,8 @@ export class SessionsService {
     return messages;
   }
 
-  // ══════════════════════════════════════════════════════════════════════════
-  // POST /sessions/:id/messages
-  // ══════════════════════════════════════════════════════════════════════════
-  async createMessage(
+    // POST /sessions/:id/messages
+    async createMessage(
     sessionId: string,
     userId: string,
     dto: CreateMessageDto,

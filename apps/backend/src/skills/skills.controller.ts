@@ -28,10 +28,8 @@ import { RequestWithUser } from '../auth/types/request-with-user.type';
 export class SkillsController {
   constructor(private readonly skillsService: SkillsService) {}
 
-  // ══════════════════════════════════════════════════════════════
-  // CLIENT routes — any authenticated user
-  // ══════════════════════════════════════════════════════════════
-
+    // CLIENT routes — any authenticated user
+  
   // GET /skills/search?q=java
   // Used by onboarding + profile edit autocomplete
   @Get('search')
@@ -47,11 +45,9 @@ export class SkillsController {
     return this.skillsService.create(dto, req.user.sub);
   }
 
-  // ══════════════════════════════════════════════════════════════
-  // ADMIN routes — role: admin only
+    // ADMIN routes — role: admin only
   // Always pair JwtGuard (who are you?) + RolesGuard (are you admin?)
-  // ══════════════════════════════════════════════════════════════
-
+  
   // GET /skills
   // Full list with filters: ?status=pending_review|approved|rejected
   @Roles(Role.ADMIN)
