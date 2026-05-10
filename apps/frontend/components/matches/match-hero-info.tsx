@@ -2,7 +2,15 @@ import { MapPin, Star } from 'lucide-react';
 import type { User } from '@/lib/api';
 
 interface MatchHeroInfoProps {
-  user: User;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+    city?: string;
+    avgRating?: number;
+    sessionsCompleted: number;
+  };
   score: number;
   compatColor: string;
 }

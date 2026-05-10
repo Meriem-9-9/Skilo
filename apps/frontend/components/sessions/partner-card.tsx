@@ -3,7 +3,15 @@ import { MapPin, Star, ArrowLeft } from 'lucide-react';
 import type { User } from '@/lib/api';
 
 interface PartnerCardProps {
-  user: User;
+  user: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+    city?: string;
+    avgRating?: number;
+    sessionsCompleted?: number;
+  };
 }
 
 export function PartnerCard({ user }: PartnerCardProps) {

@@ -4,7 +4,10 @@ import { formatDate, formatTime } from '@/app/(dashboard)/sessions/[id]/utils';
 
 interface SessionHeroProps {
   session: Session;
-  otherUser: User;
+  otherUser: {
+    firstName: string;
+    lastName: string;
+  };
 }
 
 export function SessionHero({ session, otherUser }: SessionHeroProps) {

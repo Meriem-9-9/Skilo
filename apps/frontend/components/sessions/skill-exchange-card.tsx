@@ -3,7 +3,9 @@ import type { Session, User } from '@/lib/api';
 
 interface SkillExchangeCardProps {
   session: Session;
-  otherUser: User;
+  otherUser: {
+    firstName: string;
+  };
   isInitiator: boolean;
 }
 

@@ -3,7 +3,9 @@ import type { User } from '@/lib/api';
 import { CATEGORY_ICONS, CATEGORY_COLORS } from '@/app/(dashboard)/matches/[id]/utils';
 
 interface MatchSkillsSectionProps {
-  user: User;
+  user: {
+    skills: any[];
+  };
 }
 
 export function MatchSkillsSection({ user }: MatchSkillsSectionProps) {

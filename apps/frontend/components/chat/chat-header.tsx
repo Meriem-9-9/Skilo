@@ -4,7 +4,12 @@ import Link from 'next/link';
 import type { User, Session } from '@/lib/api';
 
 interface ChatHeaderProps {
-  otherUser: User;
+  otherUser: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+  };
   session: Session;
 }
 
