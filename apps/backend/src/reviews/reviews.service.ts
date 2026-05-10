@@ -30,12 +30,12 @@ export class ReviewsService {
       },
     });
 
-    if (!session) throw new NotFoundException('Session not found');
+    if (!session) throw new NotFoundException('session non trouvee');
 
     // 2. Session must be completed or auto_completed
     if (!['completed', 'auto_completed'].includes(session.status)) {
       throw new ForbiddenException(
-        "Vous ne pouvez évaluer qu'une session complétée.",
+        "vous ne pouvez evaluer qu'une session terminee",
       );
     }
 
@@ -50,7 +50,7 @@ export class ReviewsService {
     );
     if (new Date() > windowClose) {
       throw new ForbiddenException(
-        "La fenêtre d'évaluation est fermée pour cette session.",
+        "la fenetre d'evaluation est fermee",
       );
     }
 
@@ -141,13 +141,13 @@ export class ReviewsService {
     return { message: 'avis enregistre' };
   }
 
-    // GET /reviews/session/:sessionId — own reviews for a session
-    async getForSession(sessionId: string, userId: string) {
+  // GET /reviews/session/:sessionId
+  async getForSession(sessionId: string, userId: string) {
     const session = await this.prisma.session.findUnique({
       where: { id: sessionId },
       select: { proposedById: true, recipientId: true },
     });
-    if (!session) throw new NotFoundException('Session not found');
+    if (!session) throw new NotFoundException('session non trouvee');
 
     const isParticipant =
       session.proposedById === userId || session.recipientId === userId;
@@ -169,8 +169,8 @@ export class ReviewsService {
     });
   }
 
-    // GET /users/:id/reviews — public reviews for a user profile
-    async getForUser(userId: string, page = 1, limit = 20) {
+  // GET /users/:id/reviews
+  async getForUser(userId: string, page = 1, limit = 20) {
     const skip = (page - 1) * limit;
 
     const [reviews, total] = await this.prisma.$transaction([
@@ -202,8 +202,8 @@ export class ReviewsService {
     };
   }
 
-    // INTERNAL — recalculate all average ratings for a user
-    async recalculateAverages(userId: string) {
+  // recalcule toutes les moyennes d'un user
+  async recalculateAverages(userId: string) {
     const reviews = await this.prisma.review.findMany({
       where: { revieweeId: userId, isVisible: true },
       select: {
@@ -236,8 +236,8 @@ export class ReviewsService {
     });
   }
 
-    // INTERNAL — check and award/revoke "Fiable" badge (FC-05-B)
-    async checkReliableBadge(userId: string) {
+  // check si l'user merite le badge fiable
+  async checkReliableBadge(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: {

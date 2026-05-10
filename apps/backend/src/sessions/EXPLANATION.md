@@ -22,7 +22,22 @@ N'importe qui peut annuler avant le debut. On rend les credits si besoin.
 ---
 
 ### Le Chat
-Chaque session a son propre chat pour que les deux personnes puissent s'organiser. Les messages sont stockes en base de donnees liee a l'ID de la session.
+Chaque session a son propre chat. Contrairement au reste de l'app, ici on utilise les **WebSockets** (`sessions.gateway.ts`) pour que les messages arrivent en temps reel sans avoir a rafraichir la page.
+- `joinSession` : pour ecouter les messages d'une session.
+- `sendMessage` : pour envoyer un message en direct.
+
+#### Pourquoi Socket.io et pas "WebSocket" pur ?
+Socket.io est une librairie qui simplifie l'utilisation des WebSockets. 
+1. **Auto-reconnexion** : Si ta connexion internet coupe une seconde, Socket.io reconnecte tout seul. En WebSocket pur, tu dois coder ca toi-meme.
+2. **Fallback** : Si le navigateur est vieux et ne supporte pas le WebSocket, Socket.io passe en "HTTP Long Polling" automatiquement.
+3. **Rooms** : Socket.io a deja le concept de "salles" (ex: `client.join('session_123')`). En WebSocket pur, tu dois gérer toi-meme quel client est dans quelle salle et faire le tri des messages.
+
+#### Si on voulait faire du WebSocket "From Scratch" ?
+Il faudrait implémenter :
+1. **Le "Handshake"** : Gérer la requete HTTP initiale qui demande de passer en WebSocket.
+2. **Le Formatage** : Encoder/Décoder les données en "frames" binaires (le WebSocket ne comprend pas directement le JSON).
+3. **Le Heartbeat** : Envoyer des petits messages ("ping/pong") toutes les quelques secondes pour verifier que la connexion est toujours vivante.
+4. **Le Routage** : Créer un systeme pour savoir quel message doit déclencher quelle fonction (ce que fait `@SubscribeMessage` tout seul).
 
 ### Les Notifications
 A chaque changement d'etape (nouvelle proposition, acceptation, etc.), on envoie une notification pour prevenir l'autre utilisateur.

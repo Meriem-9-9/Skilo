@@ -59,9 +59,9 @@ export class SessionsGateway implements OnGatewayConnection, OnGatewayDisconnect
       }
       
       client.join(`session_${payload.sessionId}`);
-      this.logger.log(`User ${user.sub} joined session room session_${payload.sessionId}`);
+      this.logger.log(`User ${user.sub} a rejoint la session session_${payload.sessionId}`);
     } catch (err) {
-      this.logger.error('Error joining session', err);
+      this.logger.error('erreur lors de la connexion a la session', err);
     }
   }
 
@@ -111,10 +111,10 @@ export class SessionsGateway implements OnGatewayConnection, OnGatewayDisconnect
         },
       });
 
-      // Broadcast to room
+      // on envoie le message a tout le monde dans la salle
       this.server.to(`session_${payload.sessionId}`).emit('newMessage', message);
     } catch (err) {
-      this.logger.error('Error sending message', err);
+      this.logger.error('erreur lors de l\'envoi du message', err);
     }
   }
 }

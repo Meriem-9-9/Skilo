@@ -1,4 +1,3 @@
-// reviews.controller.ts
 import {
   Body,
   Controller,
@@ -40,7 +39,7 @@ export class ReviewsController {
     return this.reviewsService.getForSession(sessionId, req.user.sub);
   }
 
-  // GET /users/:id/reviews — sits in ReviewsController but uses /users prefix
+  // GET /users/:id/reviews
   @Get('users/:id/reviews')
   getForUser(
     @Param('id') id: string,
