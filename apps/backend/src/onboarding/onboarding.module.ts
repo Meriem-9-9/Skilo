@@ -7,7 +7,7 @@ import { MatchingModule } from '../matching/matching.module';
 
 @Module({
   imports: [
-    AuthModule, // imports JwtGuard + JwtModule so the guard works
+    AuthModule, 
     MatchingModule,
   ],
   controllers: [OnboardingController],

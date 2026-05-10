@@ -9,7 +9,7 @@ import { UpdateProfileDto } from './dto/update-profile.dto';
 import { AddSkillDto, UpdateSkillLevelDto } from './dto/skill.dto';
 import { SkillType } from '@prisma/client';
 import { MatchingService } from '../matching/matching.service';
-// Fields to select from the user
+// selection des champs publics
 const USER_PUBLIC_SELECT = {
   id: true,
   firstName: true,
@@ -44,7 +44,7 @@ export class UsersService {
     private readonly matchingService: MatchingService,
   ) {}
 
-  //  GET /users/me
+  // GET /users/me
   async getMe(userId: string) {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
@@ -57,7 +57,7 @@ export class UsersService {
       },
     });
 
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException('user non trouve');
 
     return {
       ...user,
@@ -65,10 +65,10 @@ export class UsersService {
     };
   }
 
-  //  PATCH /users/me
+  // PATCH /users/me
   async updateMe(userId: string, dto: UpdateProfileDto) {
     const user = await this.prisma.user.findUnique({ where: { id: userId } });
-    if (!user) throw new NotFoundException('User not found');
+    if (!user) throw new NotFoundException('user non trouve');
 
     const updated = await this.prisma.user.update({
       where: { id: userId },
@@ -88,10 +88,10 @@ export class UsersService {
       },
     });
 
-    // Recalculate profile strength score
+    // on recalcule la force du profil
     const strength = this.calculateStrength(updated);
 
-    // If the user just hit 100 for the first time → award +1 profile bonus credit
+    // bonus de 1 credit si on atteint 100% pour la premiere fois
     if (strength.score === 100 && user.profileScore < 100) {
       await this.prisma.$transaction([
         this.prisma.user.update({
@@ -112,7 +112,7 @@ export class UsersService {
         }),
       ]);
     } else {
-      // Always persist the new score even if not 100
+      // on met a jour le score meme si c'est pas 100
       await this.prisma.user.update({
         where: { id: userId },
         data: { profileScore: strength.score },
@@ -120,21 +120,21 @@ export class UsersService {
     }
 
     return {
-      message: 'Profil mis a jour avec succes.',
+      message: 'profil mis a jour',
       user: { ...updated, profileStrength: strength },
     };
   }
 
-  //  DELETE /users/me (soft delete)
+  // DELETE /users/me
   async deleteMe(userId: string) {
     await this.prisma.user.update({
       where: { id: userId },
       data: { isActive: false },
     });
-    return { message: 'Votre compte a ete desactive.' };
+    return { message: 'compte desactive' };
   }
 
-  //  GET /users/:id (public profile)
+  // GET /users/:id
   async getPublicProfile(targetId: string, currentUserId: string) {
     const target = await this.prisma.user.findUnique({
       where: { id: targetId },
@@ -163,16 +163,14 @@ export class UsersService {
     });
 
     if (!target || !target.isOnboarded || !target.isActive) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException('user non trouve');
     }
 
-    // Determine the action button to show (FC-02-B)
     const actionButton = await this.resolveActionButton(
       currentUserId,
       targetId,
     );
 
-    // Only show email if the two users have a confirmed session together (FC-02-B)
     const hasConfirmedSession = await this.prisma.session.findFirst({
       where: {
         status: 'confirmed',
@@ -183,7 +181,6 @@ export class UsersService {
       },
     });
 
-    // Fetch match details for "compatibility" indicator
     const [id1, id2] = [currentUserId, targetId].sort();
     const match = await this.prisma.match.findUnique({
       where: {
@@ -200,7 +197,7 @@ export class UsersService {
     };
   }
 
-  //  GET /users (list, paginated)
+  // GET /users
   async listUsers(page: number = 1, limit: number = 20) {
     const skip = (page - 1) * limit;
 
@@ -224,7 +221,7 @@ export class UsersService {
     };
   }
 
-  //  POST /users/me/skills
+  // POST /users/me/skills
   async addSkill(userId: string, dto: AddSkillDto) {
     // verifier si l'utilisateur avoir deja 5 skills
     const count = await this.prisma.userSkill.count({
@@ -232,7 +229,7 @@ export class UsersService {
     });
     if (count >= 5) {
       throw new BadRequestException(
-        `Vous avez atteint la limite de 5 compétences ${dto.type === SkillType.offered ? 'offertes' : 'recherchées'}.`,
+        `limite de 5 competences atteinte pour ce type`,
       );
     }
 
@@ -243,7 +240,7 @@ export class UsersService {
         status: { in: ['approved', 'pending_review'] },
       },
     });
-    if (!skill) throw new NotFoundException('Skill not found in catalog');
+    if (!skill) throw new NotFoundException('competence non trouvee');
 
     // verfier si l'utilisateur a deja cette skill dans son profil
     const alreadyHas = await this.prisma.userSkill.findFirst({
@@ -251,7 +248,7 @@ export class UsersService {
     });
     if (alreadyHas) {
       throw new BadRequestException(
-        `Cette compétence est déjà dans votre profil (${alreadyHas.type === SkillType.offered ? 'offerte' : 'recherchée'}).`,
+        `cette competence est deja dans votre profil`,
       );
     }
 
@@ -276,12 +273,12 @@ export class UsersService {
       data: { usageCount: { increment: 1 } },
     });
 
-    await this.matchingService.recalculateForUser(userId); // Recalculate matches for this user since their skills changed
+    await this.matchingService.recalculateForUser(userId); 
 
-    return { message: 'Competence ajoutee.', skill: userSkill };
+    return { message: 'competence ajoutee', skill: userSkill };
   }
 
-  //  PATCH /users/me/skills/:userSkillId
+  // PATCH /users/me/skills/:userSkillId
   async updateSkillLevel(
     userId: string,
     userSkillId: string,
@@ -291,7 +288,7 @@ export class UsersService {
       where: { id: userSkillId },
     });
 
-    if (!userSkill) throw new NotFoundException('Skill not found');
+    if (!userSkill) throw new NotFoundException('competence non trouvee');
     if (userSkill.userId !== userId) throw new ForbiddenException();
 
     const updated = await this.prisma.userSkill.update({
@@ -305,24 +302,20 @@ export class UsersService {
       },
     });
 
-    await this.matchingService.recalculateForUser(userId); // Recalculate matches for this user since their skills changed
+    await this.matchingService.recalculateForUser(userId); 
 
-    return { message: 'Niveau mis a jour.', skill: updated };
+    return { message: 'niveau mis a jour', skill: updated };
   }
 
-  //  DELETE /users/me/skills/:userSkillId
+  // DELETE /users/me/skills/:userSkillId
   async removeSkill(userId: string, userSkillId: string) {
     const userSkill = await this.prisma.userSkill.findUnique({
       where: { id: userSkillId },
     });
 
-    if (!userSkill) throw new NotFoundException('Skill not found');
+    if (!userSkill) throw new NotFoundException('competence non trouvee');
     if (userSkill.userId !== userId) throw new ForbiddenException();
 
-    // Q1 decision: block deletion if skill is used in ANY session (any status)
-    // We can't reliably filter on JSON content with Prisma — instead we check
-    // if the user has any session at all and the skill appears in skillsExchanged.
-    // Safe approach: query sessions where this user participated, then filter in JS.
     const userSessions = await this.prisma.session.findMany({
       where: {
         OR: [{ proposedById: userId }, { recipientId: userId }],
@@ -330,7 +323,6 @@ export class UsersService {
       select: { skillsExchanged: true },
     });
 
-    // skillsExchanged is stored as JSON array — check if our skillCatalogId appears
     const isLinked = userSessions.some((session) => {
       const skills = session.skillsExchanged as { skillCatalogId?: string }[];
       return (
@@ -341,19 +333,18 @@ export class UsersService {
 
     if (isLinked) {
       throw new BadRequestException(
-        'Cette compétence est liée à une session et ne peut pas être supprimée.',
+        'cette competence est liee a une session et ne peut pas etre supprimee',
       );
     }
 
     await this.prisma.userSkill.delete({ where: { id: userSkillId } });
 
-    await this.matchingService.recalculateForUser(userId); // Recalculate matches for this user since their skills changed
+    await this.matchingService.recalculateForUser(userId); 
 
-    return { message: 'Competence supprimee.' };
+    return { message: 'competence supprimee' };
   }
 
-  //  Profile strength (FC-02-04)
-  // Called internally — not exposed as a route
+  // calcule la force du profil
   calculateStrength(user: {
     avatarUrl?: string | null;
     bio?: string | null;
@@ -404,7 +395,7 @@ export class UsersService {
     return { score, label, nextAction };
   }
 
-  //  Private: resolve action button for public profile
+  // resolve le bouton d'action pour le profil public
   private async resolveActionButton(currentUserId: string, targetId: string) {
     // Check if there's an active session between the two
     const activeSession = await this.prisma.session.findFirst({
