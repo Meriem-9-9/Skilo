@@ -4,6 +4,7 @@
 
 ---
 
+
 ## 📸 Aperçu
 ![Skilo Dashboard Mockup](https://raw.githubusercontent.com/zakariaebakkari/Skilo/main/screenshot.png)
 *(Ajoutez votre capture d'écran ici en remplaçant le lien ci-dessus)*
