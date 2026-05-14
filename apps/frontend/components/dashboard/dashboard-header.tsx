@@ -12,7 +12,7 @@ export function DashboardHeader({ firstName }: DashboardHeaderProps) {
         <Sparkles className="w-48 h-48" />
       </div>
       <div className="relative z-10">
-        <h1 className="text-3xl font-bold tracking-tight mb-2">Bonjour, {firstName}! 👋</h1>
+        <h1 className="text-3xl font-bold tracking-tight mb-2">Bonjour, {firstName}!</h1>
         <p className="text-muted-foreground">Ravi de vous revoir sur votre plateforme d'échange de compétences. Voici ce qui se passe aujourd'hui.</p>
       </div>
       <div className="flex gap-3 relative z-10">
