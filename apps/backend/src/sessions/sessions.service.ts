@@ -559,11 +559,14 @@ export class SessionsService {
       const creditsEarned = CreditsService.creditsForDuration(
         session.durationMinutes,
       );
-      await this.creditsService.credit(
-        session.recipientId,
-        creditsEarned,
-        sessionId,
-      );
+      
+      if (creditsEarned > 0) {
+        await this.creditsService.credit(
+          session.recipientId,
+          creditsEarned,
+          sessionId,
+        );
+      }
     }
 
     await this.prisma.user.updateMany({

@@ -14,6 +14,7 @@ export type PerfectPair = {
 };
 
 export type PartialMatch = {
-  offeredByB: { id: string; name: string; level: SkillLevel };
+  offeredByA: { id: string; name: string; level: SkillLevel } | null;
+  offeredByB: { id: string; name: string; level: SkillLevel } | null;
   levelScore: number;
 };

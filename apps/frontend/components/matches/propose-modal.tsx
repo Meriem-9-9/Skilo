@@ -40,8 +40,8 @@ export function ProposeSessionModal({
   onSuccess,
 }: ProposeSessionModalProps) {
   const [loading, setLoading] = useState(false);
-  const [date, setDate] = useState('');
-  const [time, setTime] = useState('');
+  const [date, setDate] = useState('2026-05-27');
+  const [time, setTime] = useState('12:00');
   const [duration, setDuration] = useState('60');
   const [selectedPairIndex, setSelectedPairIndex] = useState('0');
   const [message, setMessage] = useState('');

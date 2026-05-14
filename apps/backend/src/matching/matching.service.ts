@@ -24,10 +24,27 @@ export class MatchingService {
     const { offered: aOffered, wanted: aWanted } = this.splitSkills(
       userA.skills,
     );
-    if (aOffered.length === 0 && aWanted.length === 0) return;
+    
+    this.logger.debug(`Recalculating matches for ${userA.firstName} (${userId}). Offered: ${aOffered.map(s => s.skillCatalog.name)}, Wanted: ${aWanted.map(s => s.skillCatalog.name)}`);
+
+    if (aOffered.length === 0 && aWanted.length === 0) {
+      this.logger.warn(`User ${userId} has no skills. Archiving all their matches.`);
+      await this.prisma.match.updateMany({
+        where: { OR: [{ userAId: userId }, { userBId: userId }], status: 'active' },
+        data: { status: 'archived' }
+      });
+      return;
+    }
 
     const candidates = await this.getCandidates(userId);
-    const blockedUserIds = await this.getBlockedUserIds(userId);
+
+    await this.prisma.match.updateMany({
+      where: {
+        OR: [{ userAId: userId }, { userBId: userId }],
+        status: 'active',
+      },
+      data: { status: 'archived' },
+    });
 
     for (const userB of candidates) {
       const { offered: bOffered, wanted: bWanted } = this.splitSkills(
@@ -66,6 +83,8 @@ export class MatchingService {
       await this.upsertMatch(userId, userB.id, matchDetails);
     }
 
+
+
     this.logger.log(`Matching recalculated for user ${userId}`);
   }
 
@@ -76,6 +95,7 @@ export class MatchingService {
       where: { id: userId },
       select: {
         id: true,
+        firstName: true,
         skills: {
           select: {
             skillCatalogId: true,
@@ -168,27 +188,51 @@ export class MatchingService {
     bWanted: UserSkill[],
   ): PartialMatch[] {
     const partialSkills: PartialMatch[] = [];
-    for (const bo of bOffered) {
-      const aWantsThis = aWanted.some(
-        (aw) => aw.skillCatalogId === bo.skillCatalogId,
-      );
-      if (!aWantsThis) continue;
 
+    // Direction 1 : B offre ce que A veut (A apprend)
+    for (const bo of bOffered) {
+      const aw = aWanted.find((aw) => aw.skillCatalogId === bo.skillCatalogId);
+      if (!aw) continue;
+
+      // On évite de compter comme partiel si c'est déjà un match parfait potentiel 
+      // (déjà géré par findPerfectMatches, mais au cas où)
       const bWantsAnythingAOffers = bWanted.some((bw) =>
         aOffered.some((ao) => ao.skillCatalogId === bw.skillCatalogId),
       );
       if (bWantsAnythingAOffers) continue;
 
-      const aw = aWanted.find((aw) => aw.skillCatalogId === bo.skillCatalogId);
       partialSkills.push({
+        offeredByA: null,
         offeredByB: {
           id: bo.skillCatalogId,
           name: bo.skillCatalog.name,
           level: bo.level,
         },
-        levelScore: this.levelBonusPartial(bo.level, aw?.level),
+        levelScore: this.levelBonusPartial(bo.level, aw.level),
       });
     }
+
+    // Direction 2 : A offre ce que B veut (A enseigne)
+    for (const ao of aOffered) {
+      const bw = bWanted.find((bw) => bw.skillCatalogId === ao.skillCatalogId);
+      if (!bw) continue;
+
+      const aWantsAnythingBOffers = aWanted.some((aw) =>
+        bOffered.some((bo) => bo.skillCatalogId === aw.skillCatalogId),
+      );
+      if (aWantsAnythingBOffers) continue;
+
+      partialSkills.push({
+        offeredByA: {
+          id: ao.skillCatalogId,
+          name: ao.skillCatalog.name,
+          level: ao.level,
+        },
+        offeredByB: null,
+        levelScore: this.levelBonusPartial(ao.level, bw.level),
+      });
+    }
+
     return partialSkills;
   }
 
@@ -213,7 +257,7 @@ export class MatchingService {
       score = partialSkills.reduce((acc, p) => acc + 40 + p.levelScore, 0);
       score = Math.min(score, 100);
       matchedPairs = partialSkills.map((p) => ({
-        offeredByA: null,
+        offeredByA: p.offeredByA,
         offeredByB: p.offeredByB,
       }));
     }
@@ -225,10 +269,20 @@ export class MatchingService {
     userBId: string,
     details: { matchType: MatchType; score: number; matchedPairs: object[] },
   ) {
-    const { matchType, score, matchedPairs } = details;
+    const { matchType, score, matchedPairs: rawPairs } = details;
     const label = this.scoreToLabel(score);
+    
+    let matchedPairs = rawPairs;
     const [canonicalA, canonicalB] =
       userAId < userBId ? [userAId, userBId] : [userBId, userAId];
+
+    // Important: if we swapped A and B to be canonical, we must also swap the skills in the pairs
+    if (userAId > userBId) {
+      matchedPairs = rawPairs.map((p: any) => ({
+        offeredByA: p.offeredByB,
+        offeredByB: p.offeredByA,
+      }));
+    }
 
     const existing = await this.prisma.match.findUnique({
       where: { userAId_userBId: { userAId: canonicalA, userBId: canonicalB } },

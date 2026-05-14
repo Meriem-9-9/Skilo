@@ -21,11 +21,11 @@ import { FormError } from '@/components/auth/form-error';
 import { useAuth } from '@/contexts/auth-context';
 
 export function RegisterForm() {
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [firstName, setFirstName] = useState('Ghyzlane');
+  const [lastName, setLastName] = useState('Cherradi');
+  const [email, setEmail] = useState('ghizlanecherradi@gmail.com');
+  const [password, setPassword] = useState('Password123');
+  const [confirmPassword, setConfirmPassword] = useState('Password123');
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
@@ -87,7 +87,7 @@ export function RegisterForm() {
               <Label htmlFor="register-firstName">Prénom</Label>
               <Input
                 id="register-firstName"
-                placeholder="Jean"
+                placeholder=""
                 autoComplete="given-name"
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
@@ -100,7 +100,7 @@ export function RegisterForm() {
               <Label htmlFor="register-lastName">Nom</Label>
               <Input
                 id="register-lastName"
-                placeholder="Dupont"
+                placeholder=""
                 autoComplete="family-name"
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}

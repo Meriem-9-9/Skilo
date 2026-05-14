@@ -23,18 +23,18 @@ export default function DashboardPage() {
   useEffect(() => {
     async function fetchData() {
       try {
-        // const [meData, matchesResponse, sessionsResponse] = await Promise.all([
-        //   usersApi.me(),
-        //   matchesApi.list(),
-        //   sessionsApi.list()
-        // ]);
-        const meData = await usersApi.me();
+        const [meData, matchesResponse, sessionsResponse] = await Promise.all([
+          usersApi.me(),
+          matchesApi.list(),
+          sessionsApi.list()
+        ]);
+        // const meData = await usersApi.me();
         setUser(meData);
 
-        const matchesResponse = await matchesApi.list();
+        // const matchesResponse = await matchesApi.list();
         setMatches(matchesResponse.data || []);
 
-        const sessionsResponse = await sessionsApi.list();
+        // const sessionsResponse = await sessionsApi.list();
         setSessions(sessionsResponse.data || []);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);

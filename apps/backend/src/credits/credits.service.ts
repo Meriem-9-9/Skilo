@@ -81,6 +81,8 @@ export class CreditsService {
     type: string = 'session_earned',
     customDescription?: string
   ) {
+    if (amount <= 0) return;
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { creditBalance: true },
@@ -106,6 +108,8 @@ export class CreditsService {
         },
       });
     }
+
+    if (actualAmount <= 0) return;
  
     await this.prisma.$transaction([
       this.prisma.user.update({

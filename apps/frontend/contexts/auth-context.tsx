@@ -4,7 +4,6 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { setAccessToken, onboardingApi, tryRefresh } from '@/lib/api';
 import type { User } from '@/lib/api';
 
-// Helper to get a cookie value on the client
 function getCookie(name: string): string | undefined {
   if (typeof document === 'undefined') return undefined;
   const value = `; ${document.cookie}`;
@@ -31,7 +30,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [isOnboarded, setIsOnboarded] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
-  // Rehydrate from cookies on first load
   useEffect(() => {
     try {
       const storedToken = getCookie('access_token');
@@ -46,7 +44,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(parsed);
       setIsOnboarded(parsed.isOnboarded ?? false);
       
-      // Sync memory token for API client immediately
+      // client.ts
       setAccessToken(storedToken);
 
       // Verify onboarding status with the backend ONLY once
