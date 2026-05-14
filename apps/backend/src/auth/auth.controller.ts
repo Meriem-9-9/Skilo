@@ -90,6 +90,7 @@ export class AuthController {
     return { message: 'deconnecte avec succes' };
   }
 
+  
   @UseGuards(JwtGuard)
   // GET /auth/me
   @Get('me')
